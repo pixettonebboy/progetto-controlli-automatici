@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tavolo Rotante 3D - Fullscreen Overlay</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.5.0/lib/p5.min.js"></script>
+  <script src="sketch.js"></script>
+  <style>
+    /* Make page fullscreen, no scrollbars */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Hide scrollbars */
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+    /* Info panel in top-left corner */
+    #overlayPanel {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    /* The slider + text row */
+    #sliderRow {
+      margin-top: 8px;
+    }
+    #angleSlider {
+      width: 200px;
+      margin-right: 10px;
+    }
+    #angleVal {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <!-- The overlay with info and slider -->
+  <div id="overlayPanel">
+    <div id="infoText">T=? s<br>Theta (deg)=? ° <br>Premi 'r' per resettare</div>
+    <div id="sliderRow">
+      <input type="range" id="angleSlider" min="0" max="360" step="1" value="36" />
+      <span id="angleVal">36 </span><span>°</span>
+    </div>
+  </div>
+</body>
+</html>

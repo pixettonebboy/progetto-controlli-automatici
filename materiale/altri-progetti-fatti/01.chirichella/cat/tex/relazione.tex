@@ -1,0 +1,481 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[left=2cm, right=2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{gensymb}
+\usepackage{hyperref}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=green,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdfborder={0 0 0}
+}
+
+\renewcommand{\contentsname}{Contenuti}
+
+\title{
+    \textbf{\LARGE Relazione Controlli Automatici T:}\\
+    \textbf{\LARGE Controllo di una Tavola Rotante Motorizzata}\\[0.2cm]
+    \large Progetto Tipologia b - Traccia 3
+    }
+    \author{Davide Chirichella, Filippo Giulietti, Renato Eugenio Maria Marziano, Michele Proietti}
+    \date{}
+\numberwithin{equation}{section}
+\begin{document}
+
+\maketitle
+\tableofcontents
+\clearpage
+
+\section{Introduzione}
+\subsection{Descrizione del problema}
+Il sistema è descritto dall'equazione differenziale:
+\begin{equation}
+J\dot{\omega} = \tau(\theta)C_m - \beta\omega - k\theta,
+\end{equation}
+con rapporto di trasmissione $\tau(\theta)$ dato da:
+\begin{equation}
+\tau(\theta) = \frac{\cos(\alpha)}{1 - (\sin(\alpha)\cos(\theta))^2}.
+\end{equation}
+
+\subsection{Parametri}
+I parametri forniti dalla traccia sono:
+\begin{itemize}
+    \item $k$: elasticità del disco ($k = 500 \ \mathrm{N/m^2}$),
+    \item $J$: momento d'inerzia della tavola ($J = 400 \ \mathrm{J \cdot m^2}$),
+    \item $\beta$: coefficiente di attrito viscoso ($\beta = 0.5 \ \mathrm{N \cdot s/m^2}$),
+    \item $\alpha$: angolo del giunto cardanico ($\alpha = 50^\circ$).
+    \item $\alpha$: posizione angolare di equilibrio ($\theta_e = 100^\circ$).
+\end{itemize}
+
+\section{Analisi del sistema}
+
+\subsection{Variabili del sistema}
+Le variabili individuate per descrivere il sistema in forma di stato sono:
+\begin{itemize}
+    \item $x(t) = \begin{bmatrix}x_1(t) \\ x_2(t)\end{bmatrix} = \begin{bmatrix}\theta(t) \\ \omega(t)\end{bmatrix} = \begin{bmatrix}\theta(t) \\ \dot{\theta(t)}\end{bmatrix} $ è lo stato che comprende la posizione angolare e la velocità angolare della tavola,
+    \item $u(t) = C_m$ è l'ingresso di controllo, ovvero la coppia generata dal motore elettrico,
+    \item $y(t) = \theta(t)$ è l'uscita del sistema, ovvero la posizione angolare della tavola.
+\end{itemize}
+
+\subsection{Forma di stato}
+Il sistema è stato riscritto in forma di stato con le seguenti equazioni:
+\begin{align}
+\dot{x}(t) &= f(x(t),u(t)) = \begin{bmatrix} 
+x_2(t) \\ 
+\frac{\tau(\theta)C_m - \beta x_2(t) - k x_1(t)}{J} 
+\end{bmatrix} \\
+y(t) &= h(x(t)) = x_1(t)
+\end{align}
+
+\subsection{Considerazioni sul sistema}
+Dalle equazioni emerge che si tratta di un sistema:
+\begin{itemize}
+    \item \textbf{Non lineare}, in quanto la sua dinamica contiene elementi non lineari (seno, coseno). Necessiterà quindi di linearizzazione,
+    \item \textbf{Forzato}, in quanto la u(t) è presente nelle equazioni di stato,
+    \item \textbf{Tempo invariante}, in quanto i parametri in gioco sono costanti,
+    \item \textbf{Single Input Single Output (SISO)}, in quanto sia l'ingresso che l'uscita hanno dimensione 1,
+    \item \textbf{Strettamente proprio}, in quanto l'uscita dipende solo dallo stato e non dall'ingresso.
+\end{itemize}
+
+\subsection{Linearizzazione}
+Essendo un sistema forzato, l'equilibrio è rappresentato come una coppia \((u_e, x_e)\). Sapendo che \(\theta_e = 100^\circ\), l'equilibrio del sistema è stato calcolato come:
+\begin{align}
+x_e &= \begin{bmatrix} 
+\theta_e \\ 
+0 
+\end{bmatrix} = 
+\begin{bmatrix} 
+100^\circ \\ 
+0 
+\end{bmatrix}, \\
+u_e &= C_{m,e} = \frac{k \theta_e}{\tau(\theta_e)} \approx 1333.6021.
+\end{align}
+L'operazione di linearizzazione ci permetterà di ottenere un sistema lineare che approssima il comportamento dinamico del sistema originario (non lineare) 
+attorno all’equilibrio, ottenendo la forma di stato linearizzata nella struttura:
+\begin{align}
+    \Delta \dot{x}(t) &= A_e \Delta x(t) + B_e \Delta u(t) \\
+    \Delta y(t) &= C_e \Delta x(t) + D_e \Delta u(t)
+\end{align}
+Le matrici \( A_e, B_e, C_e, D_e \) sono linearizzate attorno alla coppia di equilibrio. Esse si ottengono calcolando le derivate parziali delle funzioni di stato e di uscita valutate nell'equilibrio rispetto alle variabili di stato e di ingresso, 
+come segue:
+
+\begin{align*}
+A_e &= \frac{\partial f(x,u)}{\partial x} \bigg|_{x = x_e, u = u_e} = \begin{bmatrix}
+0 & 1 \\
+-\frac{k}{J} & -\frac{\beta}{J}
+\end{bmatrix} \\
+B_e &= \frac{\partial f(x,u)}{\partial u} \bigg|_{x = x_e, u = u_e} = \begin{bmatrix}
+0 \\
+\frac{\tau(\theta_e)}{J}
+\end{bmatrix} \\
+C &= \begin{bmatrix}
+1 & 0
+\end{bmatrix} \\
+D &= 0
+\end{align*}
+Le matrici linearizzate sono quindi:
+\begin{align*}
+A_e &= \frac{\partial f(x,u)}{\partial x} \bigg|_{x = x_e, u = u_e} = \begin{bmatrix}
+0 & 1 \\
+-0.8042 & -0.0013
+\end{bmatrix} \\
+B_e &= \frac{\partial f(x,u)}{\partial u} \bigg|_{x = x_e, u = u_e} = \begin{bmatrix}
+0 \\
+0.0016
+\end{bmatrix} \\
+\end{align*}
+
+\subsection{Funzione di trasferimento}
+La funzione di trasferimento del sistema \(G(s) = C(sI - A_e)^{-1}B_e + D\) è stata calcolata come:
+\begin{equation}
+    G(s) \approx \frac{2.0343 \cdot  10^{-3}}{ 1 + 1.5543 \cdot 10^{3} s + 0.8042 \cdot 10^{-1} s^2 } % Parte corretta
+\end{equation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figs/Bode_G(s).jpeg}
+\caption{Diagramma di Bode della funzione di trasferimento $G(j\omega)$}
+\label{fig:etichetta}
+\end{figure}
+La funzione di trasferimento risultante presenta \textbf{due poli complessi coniugati}, come evidenziato sia dalla forma caratteristica del diagramma di Bode che 
+dalla posizione dei poli nel piano complesso. Presenta inoltre del \textbf{guadagno statico} di tipo amplificativo. Inoltre, poiché i poli hanno una parte reale strettamente negativa, il sistema soddisfa i requisiti per la \textbf{stabilità esterna} (BIBO stabilità) garantendoci in uscita una funzione limitata dando in ingresso un segnale a sua volta limitato. 
+
+\section{Specifiche per la realizzazione del regolatore}
+Nei punti precedenti abbiamo descritto il comportamento del nostro sistema ottenendo la funzione di trasferimento $G(s)$. Il prossimo passo è quello di progettare un regolatore con funzione di trasferimento $R(s)$ che ci dia garanzie di stabilità, precisione, robustezza etc... rispettando le specifiche date nella traccia.
+$L(s) = G(s)R(s)$ non è altro che il regolatore messo in serie con il sistema, definita come \textbf{funzione ad anello aperto}.
+\subsection{Specifiche di progetto}
+Le specifiche del regolatore da progettare sono:
+\begin{enumerate}
+    \item Errore a regime $\lvert e_\infty \rvert \leq e^\star = 0.01$ in risposta a un gradino $w(t) = 1.5(t)$ e $d(t) = 1(t)$;
+    \item Per garantire una certa robustezza del sistema si deve avere un margine di fase $M_f \geq 33^\circ$;
+    \item Il sistema può accettare una sovraelongazione percentuale al massimo dell'16\%: $S\% \leq 16\%$;
+    \item Il tempo di assestamento alla $\epsilon \% = 5\%$ deve essere inferiore al valore fissato: $T_{a,\epsilon} \leq 0.003 \ \mathrm{s}$;
+    \item Il disturbo sull'uscita $d(t)$, con una banda limitata nel range di pulsazioni $[0, 0.8]$, deve essere abbattuto di almeno $50 \ \mathrm{dB}$;
+    \item Il rumore di misura $n(t)$, con una banda limitata nel range di pulsazioni $[1.2 \cdot 10^5, 5 \cdot 10^6]$, deve essere abbattuto di almeno $72 \ \mathrm{dB}$.
+\end{enumerate}
+
+\subsection{Regolatore statico}
+\subsubsection{Errore a regime}
+Aggiungere uno zero avrebbe annullato completamente l'errore a regime, noi invece vogliamo semplicemente
+mantenerlo sotto una certa soglia. Per ottenere un errore a regime $|e_\infty| \leq e^* = 0.01$ in risposta a un gradino $w(t) = 1.5$ e $d(t) = 1(t)$, agiamo sul
+guadagno della funzione di trasferimento:
+
+\begin{equation}
+    \mu_\text{min} = L(0) \geq \frac{D^\star + W^\star}{e^\star} = 250
+\end{equation}
+
+\subsection{Regolatore dinamico}
+\subsubsection{Sovraelongazione percentuale e Margine di fase}
+La sovraelongazione percentuale indica quanto l'uscita del sistema supererà il valore desiderato a regime prima di stabilizzarsi.
+Per ottenere una sovraelongazione percentuale massima $S\% \leq S^\star = 16\% \ $, con un coefficiente di smorzamento $\xi$ calcolato come 
+$\xi \approx \frac{M_f}{100}$, bisognerà avere un margine di fase desiderato \(M_f^\star\) circa uguale a:
+\begin{equation}
+    M_f^\star \geq 100 \cdot \xi^\star = \frac{\left| \log\left( \frac{S^\star}{100} \right) \right|}{\sqrt{\pi^2 + \left( \log\left( \frac{S^\star}{100} \right) \right)^2}} \approx 50.3868^\circ
+\end{equation}
+
+\subsubsection{Tempo di assestamento e frequenza critica minima \( \omega_{c,\text{min}} \)}
+Il tempo di assestamento per un errore relativo \( \varepsilon\% = 5\% \) deve essere inferiore al valore fissato $T_{a, \epsilon} \leq T^\star = 0.003 \, \text{s}$.
+Per garantire questa condizione, deve essere soddisfatta la relazione:
+\begin{equation}
+    \xi \cdot \omega_n \geq \frac{3}{T^\star} \implies M_f \cdot \omega_c \geq \frac{3 \cdot 100}{T^\star}
+\end{equation}
+Con $\omega_n$ pulsazione naturale e $\xi$ coefficiente di smorzamento. Possiamo quindi ricavare la frequenza minima come:
+\[
+\omega_{c, \text{min}} = \frac{300}{M_f^\star \cdot T^\star} \approx  1984.6464
+\]
+Dove \( M_f ^ {\star} \) è il margine di fase scelto come il più restrittivo tra quelli imposti nel punto precedente dalla disequazione nel vincolo di sovraelongazione.
+
+\subsubsection{Disturbo sull'uscita} 
+Sappiamo che se $d(t)$ è una sinusoide di equazione $ d(t) = D cos ( \omega t + \varphi) $, allora $y(t) = |S(j\omega)|D \cos\left(\omega t + \varphi - \arg\{S(j\omega)\}\right)$
+, con $S(j\omega)$ definita \textbf{funzione di sensitività}. Grazie all'analisi in frequenza della funzione di sensitività possiamo approssimare la $S(j \omega)$ come segue: 
+\begin{equation}
+|S(j\omega)|_{\text{dB}} \approx 
+\begin{cases} 
+-|L(j\omega)|_{\text{dB}} & \omega \leq \omega_c \\
+0 \ \text{dB} & \omega > \omega_c
+\end{cases}
+\end{equation}
+Le specifiche richiedono di attenuare il disturbo sull'uscita, con una banda limitata nel range di pulsazioni $ [ \omega_{d, \min} = 0, \omega_{d, \max} = 0.8] $, di almeno $50\mathrm{dB}$. Poichè la $\omega_{d, \max} \ll \omega_c $ calcolata precedentemente, ricadiamo nel primo caso e possiamo affermare che:
+\begin{equation}
+|S(j\omega)|_{\text{dB}} \leq {-A_d} \implies |L(j\omega)|_{\text{dB}} \geq {A_d} \implies |L(j\omega)|_{\text{dB}} \geq 50 dB
+\end{equation}
+$L(s)$ deve avere quindi un guadagno di almeno $50\mathrm{dB}$ all'intervallo di frequenze del disturbo
+
+\subsubsection{Disturbo di misura}
+Per le stesse ragioni precedenti, sappiamo che se $n(t)$ è una sinusoide di equazione $ n(t) = N cos( \omega t + \varphi) $, allora $y(t) = |F(j\omega)|N \cos\left(\omega t + \varphi - \arg\{F(j\omega)\}\right)$, con $F(j\omega)$ \textbf{funzione di sensitività complementare}.
+Il range di pulsazioni considerato nel caso del disturbo di misura è $ [ \omega_{n, \min} = 1.2 \cdot 10^5 , \omega_{n, \max} = 5 \cdot 10^6 ] $. Possiamo approssimare la $F(j \omega)$ come segue:
+\begin{equation}
+|F(j\omega)|_{\text{dB}} \approx 
+\begin{cases} 
+0 \ \text{dB} & \omega < \omega_c \\
+|L(j\omega)|_{\text{dB}} & \omega \geq \omega_c
+\end{cases}
+\end{equation}
+Il disturbo di misura va attenuato di almeno $72\mathrm{dB}$. Poichè la $\omega_{d, \max} \gg \omega_c $, ricadiamo nel secondo caso e possiamo affermare che:
+\begin{equation}
+|F(j\omega)|_{\text{dB}} \leq {-A_n} \implies |L(j\omega)|_{\text{dB}} \leq {-A_n} \implies |L(j\omega)|_{\text{dB}} \leq -72 dB
+\end{equation}
+$L(s)$ deve avere quindi un guadagno inferiore ad almeno $72\mathrm{dB}$ all'intervallo di frequenze del disturbo
+
+\subsubsection{G(s) con aree proibite evidenziate}
+Mostriamo ora graficamente quali aree il nostro regolatore dovrà impedire di oltrepassare:
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figs/Bode_G(s)_patch.jpeg}
+\caption{Diagramma di Bode della funzione di trasferimento $G(j\omega)$ con le aree proibite }
+\label{fig:etichetta}
+\end{figure}
+\begin{itemize}
+    \item La patch \textbf{rosa} identifica la zona proibita relativa al vincolo sulla riduzione del disturbo di uscita $d(t)$;
+    \item La patch \textbf{verde} nel diagramma delle ampiezze identifica la zona proibita relativa al vincolo sulla riduzione degli errori di misura $n(t)$;
+    \item La patch \textbf{blu} identifica la zona proibita relativa alla pulsazione di taglio minima $ \omega_\text{c,min}$, ovvero le pulsazioni in cui la funzione non può andare in $0\mathrm{dB}$;
+    \item La patch \textbf{verde} nel diagramma delle fasi identifica la zona proibita relativa al margine di fase $ M_f^{\star} $, ovvero la zona che non può essere attraversata nella pulsazione di taglio ;
+\end{itemize}
+\section{Sintesi regolatore}
+Il regolatore è realizzato come combinazione tra la sua parte statica e quella dinamica $ R(s) = R_s(s) \cdot R_d(s) $
+\subsection{Sintesi del regolatore statico}
+
+%% REGOLATORE STATICO
+\section*{Regolatore Statico}
+\subsubsection{Sintesi per errore a regime}
+Il guadagno statico deve essere maggiore o uguale al minimo calcolato nel punto 3.2.1 per rispettare l'errore a regime:
+\begin{equation}
+\mu_{s,\text{error}} \geq \mu_\text{min} \approx 250
+\end{equation}
+\subsubsection{Sintesi per abbattimento disturbi}
+Applichiamo la formula per il guadagno statico utilizzato per l'abbattimento dei disturbi ($A_d$ = attenuazione dei disturbi, 50):
+\begin{equation}
+\mu_{s,\text{dist}} = 10^{A_d/20} \approx 316.2278
+\end{equation}
+\subsubsection{Sintesi regolatore statico completa}
+Otteniamo che la parte statica del regolatore ha una funzione di trasferimento del tipo:
+\begin{equation}
+R_s(s) = \max\left(\frac{\mu_{s,\text{error}}}{G(0)}, \frac{\mu_{s,\text{dist}}}{G( j \omega_\text{d,max})}\right) \approx 1.2290 \cdot 10^5
+\end{equation}
+
+\subsubsection{Rappresentazione funzione estesa}
+Rappresentiamo ora il diagramma di Bode della funzione estesa, ovvero la serie tra il sistema e la parte statica del regolatore:
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figs/Bode_G(s)_estesa.jpeg}
+\caption{Diagramma di Bode della funzione di trasferimento estesa $G_e(j\omega) = G(j\omega)R_s(j\omega)$ }
+\label{fig:etichetta}
+\end{figure}
+
+%% REGOLATORE DINAMICO
+\subsection{Sintesi del regolatore dinamico}
+\subsubsection{Sintesi per il rispetto del margine di fase}
+Osservando il diagramma di Bode del sistema esteso notiamo che ci troviamo nello scenario \textbf{B} studiato a lezione, in quanto non esistono pulsazioni in cui la fase del regolatore esteso $ G_e(j\omega) $ sodisfi il vincolo sul margine di fase. Il nostro obiettivo è quindi di aumentare la fase nell'intervallo critico in modo da rispettare il vincolo su $ M_f^{\star}$,
+amplificando il meno possibile l'ampiezza. Le strategie da adottare sono:
+\begin{itemize}
+    \item Aggiungere uno o più \textbf{zeri} per aumentare la fase;
+    \item Aggiungere uno o più \textbf{poli} per mitigare l'aumento dell'ampiezza;
+\end{itemize}
+Tenendo conto dell'aggiunta di uno o più poli, progettiamo una rete anticipatrice con la seguente funzione di trasferimento:
+\begin{equation}
+R_\text{d,anticipatrice} = \frac{ 1 + \tau s}{1 + \alpha \tau s}
+\end{equation}
+dove $ \tau $ rappresenta il tempo caratteristico che definisce la posizione del polo e dello zero, e $ \alpha $, compreso tra 0 e 1, regola il rapporto tra le loro rispettive posizioni.
+Ricordando le formule di inversione:
+\begin{align*}
+\tau &= \frac{\cos\varphi^\star - \frac{1}{M^\star}}{\omega^\star_c \sin\varphi^\star} \\
+\alpha\tau &= \frac{M^\star - \cos\varphi^\star}{\omega^\star_c \sin\varphi^\star}
+\end{align*}
+E considerando che $ |G(j \omega_c^{\star})|_{\mathrm{dB}} + 20 \log M^{\star} = 0$ ed $M_f^{\star} = 180^\circ + \arg(G_e(j \omega_c^{\star})) + \varphi^{\star}$
+Procediamo per tentativi sull' $\omega_c^{\star}$ in modo tale da rendere vere queste identità ed ottenere i parametri $M^{\star}$ e $\varphi^{\star}$.
+Dopo vari tentativi, i parametri ottimali sono risultati essere:
+\begin{itemize}
+    \item $\omega_c^{\star} = 1.1 \cdot \omega_\text{c,min} \approx 2.1831 \cdot 10^3 $, la pulsazione in cui l'ampiezza in dB del sistema esteso si annulla
+    \item $\text{Tolleranza di fase} = 8^\circ $ che andrà aggiunta a $M_f^{\star}$ calcolato nel punto 3.3.1 
+\end{itemize}
+Ottenendo dei valori:
+\begin{itemize}
+    \item $M^{\star} \approx 2.3708 \cdot 10^4$
+    \item $\varphi^{\star} \approx 58.3868 ^\circ $
+\end{itemize}
+Procediamo quindi al calcolo di $\tau$ ed $\alpha$ della rete anticipatrice:
+\begin{itemize}
+    \item $\tau \approx 12.7498$
+    \item $\alpha \approx 2.2112 \cdot 10^{-5}$
+\end{itemize}
+Ricavando una rete anticipatrice nella forma:
+\begin{equation}
+R_{d,\text{anticipatrice}}(s) = \frac{12.75 \cdot s + 1}{2.819 \cdot 10^{-4} s + 1}
+\end{equation}
+\subsubsection{Sintesi per abbattimento errori di misura}
+Per ridurre gli errori di misura, è necessario attenuare i segnali indesiderati ad alta frequenza. A tal fine, aggiungiamo un polo posizionato ad alte frequenze, secondo la forma:
+\begin{equation}
+R_\text{d,polo} = \frac{1}{(1 + T_1 s)}
+\end{equation}
+Con $T_1$ il polo calcolato procedendo per tentativi. Otteniamo quindi:
+\begin{itemize}
+\item \( T_1 \approx 3 \cdot 10^{-5} \)
+\end{itemize}
+L'inserimento di questo polo consente di portare il diagramma di Bode sotto la zona proibita, attenuando efficacemente l'influenza degli errori di misura.
+\begin{equation}
+R_\text{d,polo} = \frac{1}{(1 + 3 \cdot 10^{-5} s)}
+\end{equation}
+\subsubsection{Sintesi regolatore dinamico completa}
+Il calcolo ci permette di ottenere un regolatore dinamico del tipo:
+\begin{equation}
+R_d(s) = \frac{1.275 \cdot 10^1 s + 1}{8.458 \cdot 10^{-9} s^2 + 3.119 \cdot 10^{-4} s + 1}
+\end{equation}
+
+% SINESI COMPLETA
+\subsection{Sintesi regolatore completa}
+Il regolatore finale risulta essere:
+\begin{equation}
+R(s) = \underbrace{R_s}_{\text{Per errori misura e disturbi}} \cdot 
+\underbrace{R_d(s)}_{\text{Polo ad alta frequenza e rete anticipatrice} }
+\end{equation}
+Dal calcolo, otteniamo:
+\begin{equation}
+R(s) = \frac{1.567 \cdot 10^6 \, s + 1.229 \cdot 10^5}{8.458 \cdot 10^{-9} \, s^2 + 3.119 \cdot 10^{-4} \, s + 1}
+\end{equation}
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figs/Bode_R(s).jpeg}
+\caption{Diagramma di Bode della funzione in anello aperto $R(j\omega)$}
+\label{fig:etichetta}
+\end{figure}
+
+% FUNZIONE AD ANELLO
+\subsection{Funzione ad anello aperto}
+La funzione in anello aperto $L(s)$ soddisfa ora le specifiche del sistema:
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{figs/Bode_L(s).jpeg}
+\caption{Diagramma di Bode della funzione in anello aperto $L(j\omega)$}
+\label{fig:etichetta}
+\end{figure}
+
+\section{Test sul sistema}
+% LINEARE
+\subsection{Test sul sistema linearizzato}
+\subsubsection{Test senza disturbi}
+Per testare il comportamento del regolatore applicato al sistema linearizzato, iniziamo con il considerare un gradino con equazione $w(t) = 1.5(t)$ come segnale di ingresso. Otteniamo un risultato di questo tipo:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/lineare_non_disturbi.jpeg}
+    \caption{Simulazione di un gradino $w(t) = 1.5(t)$ in ingresso al sistema linearizzato}
+    \label{fig:etichetta}
+\end{figure}
+Il grafico della risposta evidenzia che il regolatore progettato è efficace, soddisfacendo sia la specifica sulla sovraelongazione che quella relativa al tempo di assestamento.
+Le prestazioni del sistema risultano ottimali, rispettando il vincolo temporale di assestamento in meno di 0.003 secondi.
+
+\subsubsection{Test con disturbi}
+Applichiamo ora i disturbi come da specifica della traccia:
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[H]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/risposta_d(t).jpeg}
+        \caption{Sistema lineare con $d(t) = \sum_{k=1}^{4} 0.2 \sin(0.1 k t)$.}
+        \label{fig:subfig1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[H]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figs/risposta_n(t).jpeg}
+        \caption{Sistema lineare con $n(t) = \sum_{k=1}^{4} 0.2 \sin(2 \cdot 10^5 k t)$.}
+        \label{fig:subfig2}
+    \end{subfigure}
+    \label{fig:etichetta_generale}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{figs/risposta_totale.jpeg}
+    \caption{Risposta totale del sistema con entrambi i disturbi applicati}
+    \label{fig:etichetta}
+\end{figure}
+
+Il grafico della risposta evidenzia che il regolatore progettato è efficace anche dopo l'applicazione dei disturbi, riuscendo a mantenere una sovraelongazione controllata e a rispettare il margine di errore. 
+
+\subsection{Test sul sistema non lineare}
+Una volta verificata l'efficacia del regolatore sul sistema linearizzato, vengono effettuate delle prove utilizzando gli stessi ingressi e disturbi per osservare la risposta del sistema non lineare.
+Il sistema in retroazione è stato modellato utilizzando Simulink:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{figs/rispostaNonLineare.png}
+    \caption{Simulazione grafica del sistema linearizzato con disturbi applicati}
+    \label{fig:etichetta}
+\end{figure}
+
+\section{Punti Opzionali}
+\subsection{Realizzazione interfaccia grafica}
+Con l'utilizzo di Processing e p5.js, è stata sviluppata una simulazione grafica interattiva del sistema, arricchita da uno slider che consente di selezionare la posizione angolare $\theta$ della tavola rotante.
+Abbiamo utilizzato un delta temporale discreto $\Delta t = 1 \cdot 10^{-7}$ e il \href{https://it.wikipedia.org/wiki/Metodo_di_Eulero}{Metodo di Eulero} per approssimare l'evoluzione del sistema
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{figs/grafica.jpeg}
+    \caption{Simulazione grafica del sistema}
+    \label{fig:etichetta}
+\end{figure}
+
+La simulazione è accessibile al seguente link: \href{https://marziano.top/cat.html}{Pagina Web}.
+\subsection{Analisi range di condizioni dell'ampiezza del riferimento a gradino sul non lineare}
+Applicando in ingresso al sistema non lineare gradini di ampiezze progressivamente crescenti di equazione $w(t) = A_g1(t)$, osserviamo un andamento di questo tipo:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{figs/rispostaNonLineare_GradinoAmpiezza5.png}
+        \caption{Risposta un gradino di ampiezza $A_g$ = 5}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{figs/rispostaNonLineare_GradinoAmpiezza50.png}
+        \caption{Risposta un gradino di ampiezza $A_g$ = 50}
+    \end{subfigure}
+
+    \bigskip
+
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{figs/rispostaNonLineare_GradinoAmpiezza800.png}
+        \caption{Risposta un gradino di ampiezza $A_g$ = 800}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{figs/rispostaNonLineare_GradinoAmpiezza100.png}
+        \caption{Risposta un gradino di ampiezza $A_g$ = 100}
+    \end{subfigure}
+
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+        \includegraphics[width=\textwidth]{figs/rispostaNonLineare_GradinoAmpiezza1000.png}
+        \caption{Risposta un gradino di ampiezza $A_g$ = 1000}
+    \end{subfigure}
+    
+    \caption{Simulazioni con gradini progressivamente maggiori}
+    \label{fig:griglia-immagini}
+\end{figure}
+
+La sovraelongazione del sistema aumenta proporzionalmente all'ampiezza del gradino (nonostante resti ugualmente nel range percentuale desiderato).
+Tuttavia, dopo aver dato in ingresso un gradino di ampiezza molto alta ($\approx 1000$) l'output finale del sistema risulta chiaramente instabile.
+
+\section{Conclusioni}
+Il lavoro svolto è stato strutturato principalmente da una fase inziale di analisi del sistema, una fase di realizzazione del regolatore e infine una fase di testing.
+Il sistema meccanico, essendo non lineare, è stato linearizzato attorno al punto di equilibrio. Questo ha permesso di studiarne il comportamento mediante strumenti propri dei sistemi LTI come il calcolo della \textbf{funzione di trasferimento}, permettendoci di astrarre il problema dal modello puramente "fisico".
+\\
+\\
+Il regolatore progettato, composto da una parte \textbf{statica} per garantire precisione sull'errore a regime, e da una parte \textbf{dinamica} per rispettare le restanti specifiche, ha mostrato buone prestazioni sul sistema linearizzato, soddisfacendo i vincoli progettuali.
+Test con ingressi a gradino e disturbi sinusoidali ne hanno confermato la robustezza e la precisione.
+\\
+\\
+Tuttavia, applicando il regolatore al sistema \textbf{non linearizzato} ricostruito su Simulink, sono emerse limitazioni significative. In assenza di disturbi, si osserva un aumento del tempo di assestamento e della sovraelongazione, particolarmente marcato aumentando l'ampiezza del gradino inserito.
+Con l'introduzione di gradini di ampiezza troppo ampia il sistema può addirittura divergere, mostrando quindi un'incapacità del regolatore di garantire la stabilità del sistema non lineare.
+\\
+\\
+Queste differenze derivano dalla natura fortemente \textbf{non lineare del sistema}, che la linearizzazione non riesce a rappresentare con sufficiente accuratezza.
+La progettazione di un regolatore più sofisticato potrebbe migliorare le prestazioni e garantire una maggiore robustezza rispetto alle complessità del sistema reale.
+\end{document}
