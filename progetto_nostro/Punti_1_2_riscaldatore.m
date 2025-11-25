@@ -120,7 +120,7 @@ disp(lambda);
 fprintf('\n');
 
 
-%% PUNTO 2: FUNZIONE DI TRASFERIMENTO G(s) E GRAFICI 
+%% PUNTO 2: FUNZIONE DI TRASFERIMENTO G(s)
 
 s = tf('s');
 [N,D] = ss2tf(A,B,C,D);
@@ -143,7 +143,6 @@ figure();
 % zona grigia: disturbo a bassa frequenza
 patch([omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [-200, -200, 200, 200], [0.85 0.85 0.85], 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
 hold on;
-
 % zona gialla: rumore ad alta frequenza
 patch([omega_n, omega_plot_max, omega_plot_max, omega_n], [-200, -200, 200, 200],  'y', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
 
@@ -182,6 +181,7 @@ figure();
 step(F_cl);
 grid on;
 title('Risposta al gradino dell''anello chiuso F_(cl)(s)');
+
 
 
 
