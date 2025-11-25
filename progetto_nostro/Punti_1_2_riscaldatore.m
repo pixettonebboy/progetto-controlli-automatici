@@ -120,3 +120,68 @@ disp(lambda);
 fprintf('\n');
 
 
+%% PUNTO 2: FUNZIONE DI TRASFERIMENTO G(s) E GRAFICI 
+
+s = tf('s');
+[N,D] = ss2tf(A,B,C,D);
+G = tf(N,D);
+zpk(G)
+disp('PUNTO 2: Funzione di trasferimento G(s) = ΔTout(s) / ΔPE(s) ');
+
+% Intervallo di frequenze per il Bode
+omega_plot_min = 1e-2;
+omega_plot_max = 1e5;
+% Banda disturbo (zona grigia) [0, 0.4] rad/s
+omega_dist_max = 0.4;
+% Frequenza di inizio banda di rumore (zona gialla)
+omega_n = 8e4;
+
+%% 1) PRIMO GRAFICO: Bode di G(s) iniziale con zona grigia + zona gialla
+
+figure();
+
+% zona grigia: disturbo a bassa frequenza
+patch([omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [-200, -200, 200, 200], [0.85 0.85 0.85], 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
+hold on;
+
+% zona gialla: rumore ad alta frequenza
+patch([omega_n, omega_plot_max, omega_plot_max, omega_n], [-200, -200, 200, 200],  'y', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
+
+% Bode di G(s) 
+[Mag, phase, w] = bode(G, {omega_plot_min, omega_plot_max});
+margin(Mag, phase, w);
+
+grid on;
+title('Funzione di trasferimento iniziale G(s) con zone disturbo/rumore');
+hold off;
+
+
+%% 2) SECONDO GRAFICO: Funzione di trasferimento ad anello chiuso
+
+% Anello chiuso con retroazione unitaria:
+% F(s) = G(s) / (1 + G(s))
+F_cl = G/(1+G);   
+
+figure();
+
+% zona grigia: disturbo
+patch([omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [-200, -200, 200, 200], [0.85 0.85 0.85], 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
+hold on;
+% zona gialla: rumore
+patch([omega_n, omega_plot_max, omega_plot_max, omega_n], [-200, -200, 200, 200], 'y', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
+
+% Bode della funzione di trasferimento in anello chiuso
+[MagF, phaseF, wF] = bode(F_cl, {omega_plot_min, omega_plot_max});
+margin(MagF, phaseF, wF);
+
+grid on;
+title('Funzione di trasferimento ad anello chiuso F_(cl)(s)');
+hold off;
+
+figure();
+step(F_cl);
+grid on;
+title('Risposta al gradino dell''anello chiuso F_(cl)(s)');
+
+
+
