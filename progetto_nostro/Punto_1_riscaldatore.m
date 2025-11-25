@@ -114,6 +114,7 @@ disp(D);
 
 %  autovalori di A
 lambda = eig(A);
-disp('Autovalori della matrice A (stabilita'' del modello lineare):');
+disp('Autovalori della matrice A :');
 disp(lambda);
 fprintf('\n');
+
