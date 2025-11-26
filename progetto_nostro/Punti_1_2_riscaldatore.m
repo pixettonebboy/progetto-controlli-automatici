@@ -1,5 +1,4 @@
 clear ; clc ; close all;
-
 hR = 50;       
 AR = 0.07;     
 cR = 840.8;    
@@ -136,7 +135,7 @@ omega_dist_max = 0.4;
 % Frequenza di inizio banda di rumore (zona gialla)
 omega_n = 8e4;
 
-%% 1) PRIMO GRAFICO: Bode di G(s) iniziale con zona grigia + zona gialla
+%% Bode di G(s) iniziale con zona grigia + zona gialla
 
 figure();
 
@@ -153,35 +152,3 @@ margin(Mag, phase, w);
 grid on;
 title('Funzione di trasferimento iniziale G(s) con zone disturbo/rumore');
 hold off;
-
-
-%% 2) SECONDO GRAFICO: Funzione di trasferimento ad anello chiuso
-
-% Anello chiuso con retroazione unitaria:
-% F(s) = G(s) / (1 + G(s))
-F_cl = G/(1+G);   
-
-figure();
-
-% zona grigia: disturbo
-patch([omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [-200, -200, 200, 200], [0.85 0.85 0.85], 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
-hold on;
-% zona gialla: rumore
-patch([omega_n, omega_plot_max, omega_plot_max, omega_n], [-200, -200, 200, 200], 'y', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
-
-% Bode della funzione di trasferimento in anello chiuso
-[MagF, phaseF, wF] = bode(F_cl, {omega_plot_min, omega_plot_max});
-margin(MagF, phaseF, wF);
-
-grid on;
-title('Funzione di trasferimento ad anello chiuso F_(cl)(s)');
-hold off;
-
-figure();
-step(F_cl);
-grid on;
-title('Risposta al gradino dell''anello chiuso F_(cl)(s)');
-
-
-
-
