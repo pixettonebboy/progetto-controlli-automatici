@@ -104,10 +104,98 @@ sys_ss = ss(A_e, B_e, C, D);
 %                         PUNTO 2: FUNZIONE G(s)
 % -------------------------------------------------------------------------
 
-% Funzione di trasferimento G(s) = ΔTout(s) / ΔPE(s)
+%% ======================= PUNTO 2 ==========================
+% Funzione di trasferimento G(s) = ΔTout / ΔPE
+% Bode di G(s) con:
+%  - banda disturbo (grigio)
+%  - banda rumore (giallo)
+%  - linea in ω_c,min
+%  - zona proibita per Mf
+% -------------------------------------------------------------------------
+
+sys_ss = ss(A, B, C, D);
 G = tf(sys_ss);
 
-fprintf('\n-PUNTO 2: Funzione di trasferimento G(s) -\n');
-zpk(G)    % forma zero-poli-guadagno
+fprintf('--- PUNTO 2: G(s) = ΔTout(s) / ΔPE(s) ---\n');
+zpk(G)
 G0 = dcgain(G);
-fprintf('Guadagno statico G(0) = %.6f [°C/W]\n', G0);
+fprintf('Guadagno statico G(0) = %.6f [°C/W]\n\n', G0);
+
+%  SPECIFICHE PER LE ZONE
+Mf_min   = 50;       % [deg]
+T_star   = 0.01;     % [s]
+Sovr_max = 0.11;     % 11%
+
+A_d      = 50;       % [dB] attenuazione disturbo in [0, 0.4] rad/s
+A_n      = 60;       % [dB] attenuazione rumore in [8e4, 9e6] rad/s
+
+omega_dist_max = 0.4;     % banda disturbo
+omega_n_min    = 8e4;     % inizio banda rumore
+omega_n_max    = 9e6;     % fine banda rumore
+
+% Smorzamento e Mf desiderato
+csi_star = abs(log(Sovr_max)) / sqrt(pi^2 + (log(Sovr_max))^2);
+Mf       = max(csi_star*100, Mf_min);
+
+% ω_c,min euristica
+omega_c_min = 300 / (Mf * T_star);
+
+fprintf('PUNTO 2: Mf_des = %.2f gradi, omega_c,min = %.3f rad/s\n\n', Mf, omega_c_min);
+
+% BODE  PER MODULO E FASE 
+omega_plot_min = 1e-3;
+omega_plot_max = 1e7;
+
+[MagG, PhaseG, wG] = bode(G, {omega_plot_min, omega_plot_max});
+MagG       = squeeze(MagG);
+PhaseG_deg = squeeze(PhaseG);          % [deg]
+MagG_dB    = 20*log10(MagG);
+
+%% BODE COMPLETO 
+fig = figure('Name','Punto 2 - Bode di G(s) con bande e vincoli');
+tlo = tiledlayout(2,1);  
+
+% ----------------- MODULO -----------------
+ax1 = nexttile(tlo,1);
+hold(ax1,'on'); grid(ax1,'on'); box(ax1,'on');
+set(ax1,'XScale','log');
+
+% banda disturbo [0, omega_dist_max]
+patch(ax1, [omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [80, 80, -140, -140], [0.8 0.8 0.8], 'FaceAlpha',0.3,'EdgeColor','none');
+
+% banda rumore [omega_n_min, omega_n_max]
+patch(ax1, [omega_n_min, omega_n_max, omega_n_max, omega_n_min], [80, 80, -140, -140], [1 1 0], 'FaceAlpha',0.3,'EdgeColor','none');
+
+plot(ax1, wG, MagG_dB, 'LineWidth',1.5);
+xline(ax1, omega_c_min, 'r--', '\omega_{c,min}', 'LineWidth',1.2,'LabelOrientation','horizontal');
+
+ylabel(ax1, '|G(j\omega)| [dB]');
+title(ax1, 'Punto 2 - Bode di G(s) con bande disturbo/rumore e \omega_{c,min}');
+
+% ----------------- FASE -----------------
+ax2 = nexttile(tlo,2);
+hold(ax2,'on'); grid(ax2,'on'); box(ax2,'on');
+set(ax2,'XScale','log');
+
+plot(ax2, wG, PhaseG_deg, 'LineWidth',1.5);
+
+yl = ylim(ax2);
+phi_low = yl(1);
+
+% banda disturbo
+patch(ax2, [omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [yl(2), yl(2), yl(1), yl(1)],[0.8 0.8 0.8],'FaceAlpha',0.2,'EdgeColor','none');
+
+% banda rumore
+patch(ax2, [omega_n_min, omega_n_max, omega_n_max, omega_n_min], [yl(2), yl(2), yl(1), yl(1)],[1 1 0],'FaceAlpha',0.2,'EdgeColor','none');
+
+% zona proibita per Mf (fase < Mf-180 a destra di ω_c,min)
+patch(ax2, [omega_c_min, omega_n_min, omega_n_min, omega_c_min],[Mf-180, Mf-180, phi_low, phi_low],[1 0.7 0.7], 'FaceAlpha',0.5,'EdgeColor','none');
+
+xline(ax2, omega_c_min, 'r--', '\omega_{c,min}','LineWidth',1.2,'LabelOrientation','horizontal');
+
+xlabel(ax2, '\omega [rad/s]');
+ylabel(ax2, 'Fase [deg]');
+title(ax2, 'Fase di G(s) con bande e zona proibita Mf');
+
+tlo.TileSpacing = 'compact';
+tlo.Padding     = 'compact';
