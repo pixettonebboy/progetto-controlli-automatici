@@ -61,34 +61,34 @@ fprintf('u_e    = %.4f W\n\n', u_e);
 
 delta = 1e-6;   % incremento per derivate finte
 
-% Matrice A_e: derivate rispetto a [TR, Tout]
-A_e = zeros(2,2);
+% Matrice A: derivate rispetto a [TR, Tout]
+A = zeros(2,2);
 
 % df1/dTR
-A_e(1,1) = ( f1(x1_e + delta, x2_e, u_e) - f1(x1_e, x2_e, u_e) ) / delta;
+A(1,1) = ( f1(x1_e + delta, x2_e, u_e) - f1(x1_e, x2_e, u_e) ) / delta;
 % df1/dTout
-A_e(1,2) = ( f1(x1_e, x2_e + delta, u_e) - f1(x1_e, x2_e, u_e) ) / delta;
+A(1,2) = ( f1(x1_e, x2_e + delta, u_e) - f1(x1_e, x2_e, u_e) ) / delta;
 
 % df2/dTR
-A_e(2,1) = ( f2(x1_e + delta, x2_e, u_e) - f2(x1_e, x2_e, u_e) ) / delta;
+A(2,1) = ( f2(x1_e + delta, x2_e, u_e) - f2(x1_e, x2_e, u_e) ) / delta;
 % df2/dTout
-A_e(2,2) = ( f2(x1_e, x2_e + delta, u_e) - f2(x1_e, x2_e, u_e) ) / delta;
+A(2,2) = ( f2(x1_e, x2_e + delta, u_e) - f2(x1_e, x2_e, u_e) ) / delta;
 
-% Matrice B_e: derivate rispetto a u
-B_e = zeros(2,1);
+% Matrice B: derivate rispetto a u
+B = zeros(2,1);
 
 % df1/du
-B_e(1,1) = ( f1(x1_e, x2_e, u_e + delta) - f1(x1_e, x2_e, u_e) ) / delta;
+B(1,1) = ( f1(x1_e, x2_e, u_e + delta) - f1(x1_e, x2_e, u_e) ) / delta;
 % df2/du
-B_e(2,1) = ( f2(x1_e, x2_e, u_e + delta) - f2(x1_e, x2_e, u_e) ) / delta;
+B(2,1) = ( f2(x1_e, x2_e, u_e + delta) - f2(x1_e, x2_e, u_e) ) / delta;
 
 % Uscita: y = Tout
 C = [0 1];
 D = 0;
 
 % Verifica stabilità
-lambda = eig(A_e);
-fprintf('Autovalori della matrice A_e:\n');
+lambda = eig(A);
+fprintf('Autovalori della matrice A:\n');
 disp(lambda);
 if all(real(lambda) < 0)
     disp('Il sistema linearizzato è asintoticamente stabile (Re(λ) < 0).');
@@ -97,7 +97,7 @@ else
 end
 
 %  modello linearizzato
-sys_ss = ss(A_e, B_e, C, D);
+sys_ss = ss(A, B, C, D);
 
 
 %% ------------------------------------------------------------------------
@@ -113,7 +113,7 @@ sys_ss = ss(A_e, B_e, C, D);
 %  - zona proibita per Mf
 % -------------------------------------------------------------------------
 
-sys_ss = ss(A_e, B_e, C, D);
+sys_ss = ss(A, B, C, D);
 G = tf(sys_ss);
 
 fprintf('--- PUNTO 2: G(s) = ΔTout(s) / ΔPE(s) ---\n');
@@ -199,4 +199,5 @@ title(ax2, 'Fase di G(s) con bande e zona proibita Mf');
 
 tlo.TileSpacing = 'compact';
 tlo.Padding     = 'compact';
+
 
