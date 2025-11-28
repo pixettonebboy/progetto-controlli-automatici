@@ -56,7 +56,7 @@ fprintf('u_e    = %.4f W\n\n', u_e);
 
 
 %% ------------------------------------------------------------------------
-%       LINEARIZZAZIONE: CALCOLO NUMERICO DI A_e E B_e (stile riferimento)
+%       LINEARIZZAZIONE: CALCOLO NUMERICO DI A_e E B_e 
 % -------------------------------------------------------------------------
 
 delta = 1e-6;   % incremento per derivate finte
@@ -96,7 +96,7 @@ else
     disp('Il sistema linearizzato NON è asintoticamente stabile.');
 end
 
-% Costruiamo il modello linearizzato
+%  modello linearizzato
 sys_ss = ss(A_e, B_e, C, D);
 
 
@@ -113,7 +113,7 @@ sys_ss = ss(A_e, B_e, C, D);
 %  - zona proibita per Mf
 % -------------------------------------------------------------------------
 
-sys_ss = ss(A, B, C, D);
+sys_ss = ss(A_e, B_e, C, D);
 G = tf(sys_ss);
 
 fprintf('--- PUNTO 2: G(s) = ΔTout(s) / ΔPE(s) ---\n');
@@ -199,3 +199,4 @@ title(ax2, 'Fase di G(s) con bande e zona proibita Mf');
 
 tlo.TileSpacing = 'compact';
 tlo.Padding     = 'compact';
+
