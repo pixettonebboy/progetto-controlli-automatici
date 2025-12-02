@@ -422,7 +422,7 @@ T1_f          = 1 / omega_p_noise;
 
 R_d_polo = 1 / (1 + T1_f * s);
 
-% 3.4.2 Rete anticipatrice (Scenario B, stile "come prima" ma corretto)
+% 3.4.2 Rete anticipatrice (Scenario B)
 omega_c_star = 1.1 * omega_c_min;
 
 % Open-loop senza rete anticipatrice dinamica: L0(s) ≈ G_e(s) = R_s G(s)
@@ -715,3 +715,4 @@ legend([
 
 tlo.TileSpacing = 'compact';
 tlo.Padding     = 'compact';
+
