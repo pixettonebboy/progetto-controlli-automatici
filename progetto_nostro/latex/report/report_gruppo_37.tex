@@ -1,0 +1,112 @@
+\documentclass{article}
+
+\usepackage{graphicx} % per immagini
+\usepackage{amsmath} % per matematica
+\usepackage[a4paper, margin=2cm]{geometry} %margine di spazio dai bordi pagina (+ provarne altri)
+\usepackage{booktabs}  % bordi belli tabella
+\usepackage{tabularx}  % larghezza flessibile tabella
+
+\usepackage[table]{xcolor} % colore righe
+\usepackage{array}      % centrare verticalment
+
+\title{
+    \textbf{\LARGE Relazione Controlli Automatici T:}\\
+    \textbf{\LARGE Controllo di un riscaldatore elettrico}\\[0.2cm]
+    \large Progetto Tipologia b - Traccia 2
+    }
+    \author{
+        Achille Pisani \\
+        Alessandro Parmeggiani \\
+        Youssef Esam Ebrahim Abou Aiesh
+    }
+
+    \date{}
+
+%cambio il nome delle immagini da "Figure" a "Figura" e tabella=.
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabella}
+
+\begin{document}
+
+%TAG UTILIZZATI: per figure "fig:", per equazioni "eq:", per sezioni "sec:", tabella "tab:"
+
+%pagina 1: titolo
+\maketitle
+\clearpage
+
+%pagina 2: sommario
+\tableofcontents
+\clearpage
+
+%metto sectionCounter-=1 per partire da cap. 0 e avere l'intro non coincidente con i punti.
+\setcounter{section}{-1}
+
+%sezione introduttiva ()
+\section{Introduzione} \label{sec:introduzione}
+
+\subsection{Descrizione del problema}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figs/Schema-illustrativo-riscaldatore.png}
+    \caption{Schema illustrativo del riscaldatore.}
+    \label{fig:schemaScaldatore}
+\end{figure}
+
+Si consideri il sistema in Figura~\ref{fig:schemaScaldatore} rappresentante un riscaldatore elettrico che riscalda dell’aria in transito.
+La dinamica del sistema è descritta dalle seguenti equazioni differenziali:
+\begin{align}
+m_R c_R \frac{dT_R(t)}{dt} &= h_R A_R (T_{\text{out}}(t) - T_R(t)) + \frac{P_E(t)}{(1 + \kappa T_R(t))} \label{eq:diff1} \\
+m_A c_A \frac{dT_{\text{out}}(t)}{dt} &= \dot{m}_A c_A (T_{\text{in}} - T_{\text{out}}(t)) 
++ h_R A_R (T_R(t) - T_{\text{out}}(t)). \label{eq:diff2}
+\end{align}
+
+\subsection{Parametri}
+
+I parametri forniti dalla traccia sono:
+\begin{itemize}
+    \item $T_R(t)$ è la temperatura del riscaldatore [$^\circ$C];
+    \item $T_{\text{out}}(t)$ è la temperatura dell'aria in uscita dal riscaldatore [$^\circ$C];
+    \item $P_E(t)$ è la potenza elettrica fornita [$\mathrm{W}$];
+    \item $T_{\text{in}}$ è la temperatura dell'aria in ingresso (ambiente a temperatura costante) [$^\circ$C];
+    \item $m_R$ è la massa del riscaldatore [$\mathrm{kg}$];
+    \item $c_R$ è il calore specifico del riscaldatore [$\mathrm{J/(kg \cdot ^\circ C)}$];
+    \item $h_R$ è il coefficiente di convezione [$\mathrm{W/(m^2 \cdot ^\circ C)}$];
+    \item $A_R$ è l’area di scambio termico tra riscaldatore e aria [$\mathrm{m^2}$];
+    \item $\kappa$ è il coefficiente di variazione della resistenza con la temperatura [$1/^\circ\mathrm{C}$];
+    \item $m_A$ è la massa dell'aria [$\mathrm{kg}$];
+    \item $c_A$ è il calore specifico dell'aria [$\mathrm{J/(kg \cdot ^\circ C)}$];
+    \item $\dot{m}_A$ è la portata massica dell’aria [$\mathrm{kg/s}$].
+\end{itemize}
+Si supponga di poter misurare la temperatura dell’aria in uscita dal riscaldatore $T_{\text{out}}(t)$ e di poter agire sulla potenza elettrica fornita al riscaldatore $P_E(t)$.
+\clearpage
+%tabella parametri
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.5} % altezza righe
+    \label{tab:parametri}
+    \rowcolors{2}{gray!15}{white} % righe alternate grigio chiaro e bianco
+    \begin{tabularx}{0.9\textwidth}{>{\raggedright\arraybackslash}p{4cm} X}
+        \toprule
+        \rowcolor{gray!30} Parametro & Valore \\
+        \midrule
+        $h_R$              & $50~\mathrm{W/(m^2 \cdot ^\circ C)}$      \\
+        $A_R$              & $0,07~\mathrm{m^2}$                        \\
+        $c_R$              & $840,8~\mathrm{J/(kg \cdot ^\circ C)}$     \\
+        $c_A$              & $1010~\mathrm{J/(kg \cdot ^\circ C)}$      \\
+        $m_R$              & $2,542~\mathrm{kg}$                        \\
+        $m_A$              & $0,1041~\mathrm{kg}$                        \\
+        $\dot{m}_A$        & $0,2~\mathrm{kg/s}$                         \\
+        $T_{\text{in}}$    & $28~^\circ\mathrm{C}$                        \\
+        $\kappa$           & $3 \cdot 10^{-3} \, (1/^\circ\mathrm{C})$ \\
+        $T_{\text{R,e}}$   & $175~^\circ\mathrm{C}$                       \\
+        $T_{\text{out,e}}$ & $80~^\circ\mathrm{C}$                        \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Valori dei parametri del riscaldatore}
+\end{table}
+\clearpage
+
+
+
+\end{document}
