@@ -665,8 +665,8 @@ patch([T_star, T_sim, T_sim, T_star],[LV*(1-0.05), LV*(1-0.05), 0, 0], 'g','Face
 patch([T_star, T_sim, T_sim, T_star], [LV*(1+0.05), LV*(1+0.05), LV*2,LV*2], 'g','FaceAlpha',0.1,'EdgeAlpha',0.3);
 hold off;
 
-% 3.7 bis - Bode riassuntivo estetico
-figure('Name','Punto 3 - Bode Riassuntivo Ottimizzato');
+% 3.7 bis - Bode riassuntivo 
+figure('Name','Punto 3 - Bode Riassuntivo ');
 tlo = tiledlayout(2,1);
 
 % --- MODULO ---
@@ -715,4 +715,5 @@ legend([
 
 tlo.TileSpacing = 'compact';
 tlo.Padding     = 'compact';
+
 
