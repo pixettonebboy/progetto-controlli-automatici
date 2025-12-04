@@ -213,7 +213,7 @@ phi_max = max(PhaseG_deg) + 20;
 
 
 %% ========================================================================
-%  PARTE 2 - OUTPUT TESTUALE E GRAFICA
+%  PARTE 2 - OUTPUT 
 % ========================================================================
 
 %% ----------------- REPORT PUNTO 2 (OUTPUT TESTO) -----------------
@@ -712,4 +712,5 @@ h_phase180 = plot(ax2, w_180, phi_180, 'o', 'MarkerSize',7, 'LineWidth',1.6, 'Co
 
 % legenda fase
 legend(ax2, [hMf_rect, hMf_line, hMf_point, h_phase180],{ sprintf('PM = %.1f°', PM), sprintf('Soglia M_f = %.1f°', Mf), '\omega_{pm}', '\omega_{gm} (fase \approx -180°)' }, 'Location','eastoutside', 'Interpreter','tex', 'FontSize',9);
+
 
