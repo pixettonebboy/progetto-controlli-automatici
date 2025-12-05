@@ -715,3 +715,222 @@ legend(ax2, [hMf_rect, hMf_line, hMf_point, h_phase180],{ sprintf('PM = %.1f°',
 
 
 
+%% ============================================================
+%  PUNTO 4 - TEST SU MODELLO LINEARIZZATO (w, d, n) 
+% ============================================================
+
+%% ------------------------------------------------------------
+%  PARTE 1 - CALCOLI E SIMULAZIONI
+% ------------------------------------------------------------
+
+% 4.0 - Trasferimenti in anello chiuso
+%   da w a y : Twy = T
+%   da d a y : Tdy = S
+%   da n a y : Tny = -T  (rumore sul ramo di misura)
+Twy = T;
+Tdy = S;
+Tny = -T;
+
+% 4.1 - Margini di stabilità e prestazioni al gradino
+[GM, PM, ~, wcp] = margin(L);                  % margini di L(s)
+info_step = stepinfo(W_max * Twy, 'SettlingTimeThreshold',0.05);  % Ts, overshoot
+
+% Errore a regime sul gradino (da specifica |e_inf| <= 0.002)
+ess = abs(W_max * (1 - dcgain(Twy)));
+
+% 4.2 - Simulazione lunga (basse frequenze): w(t), d(t), senza rumore
+t1_final = 60;           % [s] orizzonte lungo per vedere il disturbo
+dt1      = 1e-2;         % [s] passo adeguato per basse frequenze
+t1       = 0:dt1:t1_final;
+
+% w(t) = 4 * 1(t)
+w1 = W_max * ones(size(t1));
+
+% d(t) = 1.5 * sum_{k=1}^4 sin(0.08*k*t)
+d1 = zeros(size(t1));
+for k = 1:4
+    d1 = d1 + sin(0.08 * k * t1);
+end
+d1 = 1.5 * d1;
+
+% rumore assente in questo scenario
+n1 = zeros(size(t1));
+
+% risposte in anello chiuso (scenario lungo, n = 0)
+y_w1   = lsim(Twy, w1, t1);
+y_d1   = lsim(Tdy, d1, t1);
+y_n1   = lsim(Tny, n1, t1);      % sarà tutto zero
+y_tot1 = y_w1 + y_d1 + y_n1;    % risposta totale (lungo termine)
+
+
+% 4.3 - Simulazione breve ad alta risoluzione (alte frequenze):
+%       w(t), d(t), n(t) TUTTI ATTIVI
+t2_final = 0.05;         % [s] orizzonte breve
+dt2      = 1e-6;         % [s] passo piccolo per il rumore
+t2       = 0:dt2:t2_final;
+
+% w(t) = 4 * 1(t)
+w2 = W_max * ones(size(t2));
+
+% d(t) = 1.5 * sum_{k=1}^4 sin(0.08*k*t) sullo stesso orizzonte breve
+d2 = zeros(size(t2));
+for k = 1:4
+    d2 = d2 + sin(0.08 * k * t2);
+end
+d2 = 1.5 * d2;
+
+% n(t) = 3 * sum_{k=1}^4 sin(5e4*k*t)
+n2 = zeros(size(t2));
+for k = 1:4
+    n2 = n2 + sin(5e4 * k * t2);
+end
+n2 = 3 * n2;
+
+% risposte ai singoli ingressi
+y_w2 = lsim(Twy, w2, t2);
+y_d2 = lsim(Tdy, d2, t2);
+y_n2 = lsim(Tny, n2, t2);
+
+% risposta totale (scenario breve, w + d + n)
+y_tot2 = y_w2 + y_d2 + y_n2;
+
+%% ------------------------------------------------------------
+%  PARTE 2 - OUTPUT TESTUALE
+% ------------------------------------------------------------
+
+fprintf('\n============================================================\n');
+fprintf('                     PUNTO 4 - PRESTAZIONI                  \n');
+fprintf('============================================================\n\n');
+
+% Margini di stabilità
+fprintf('Margini di stabilità di L(s):\n');
+fprintf('  GM (guadagno)        = %.2f dB\n', 20*log10(GM));
+fprintf('  PM (margine di fase) = %.2f [deg]\n', PM);
+fprintf('  Frequenza w_c        = %.4f [rad/s]\n\n', wcp);
+
+% Prestazioni al gradino (w -> y, nessun disturbo/rumore)
+fprintf('Prestazioni al gradino di riferimento (d = 0, n = 0):\n');
+fprintf('  Ts (5%%)              = %.4e [s]\n', info_step.SettlingTime);
+fprintf('  Overshoot            = %.2f [%%]\n',    info_step.Overshoot);
+fprintf('  Errore a regime      = %.4e [°C]\n\n',  ess);
+
+% Indicatori su disturbo (scenario lungo)
+max_y_d1 = max(abs(y_d1));
+fprintf('Disturbo d(t) in banda bassa (scenario lungo, w + d):\n');
+fprintf('  max |y_d1(t)|        = %.4f [°C]\n\n', max_y_d1);
+
+% Indicatori su rumore (scenario breve)
+max_y_n2 = max(abs(y_n2));
+fprintf('Rumore di misura n(t) in banda alta (scenario breve, w + d + n):\n');
+fprintf('  max |y_n2(t)|        = %.4e [°C]\n', max_y_n2);
+fprintf('  Ampiezza di ogni sinusoide di n(t) = 3 [°C]\n\n');
+
+fprintf('Nota: scenario lungo per evidenziare la reiezione del disturbo a bassa\n');
+fprintf('      frequenza; scenario breve ad alta risoluzione per il rumore di misura.\n');
+fprintf('------------------------------------------------------------\n\n');
+
+%% ============================================================
+%  PUNTO 4 - GRAFICA 
+% ============================================================
+
+%  Scenario lungo + breve + uscite totali
+
+colW   = [0 0.25 1];     % blu  -> riferimento
+colD   = [0.85 0.2 0.2]; % rosso -> disturbo
+colY   = [0 0.6 0.2];    % verde -> uscita totale
+colN   = [0.7 0 0.9];    % viola -> rumore
+
+
+%% ============================================================
+%  FIGURA A — Scenario lungo: w1(t) e d1(t)
+% ============================================================
+
+figure('Name','Punto 4 - Scenario lungo (Ingressi)','NumberTitle','off');
+tloA = tiledlayout(2,1);
+tloA.TileSpacing = 'compact';
+tloA.Padding     = 'compact';
+
+% --- w1(t) ---
+ax1 = nexttile(tloA,1);
+plot(ax1, t1, w1, 'LineWidth',1.6, 'Color',colW);
+grid(ax1,'on'); box(ax1,'on');
+ylabel(ax1,'w_1(t) [°C]');
+title(ax1,'Scenario lungo — Riferimento w_1(t) = 4 \cdot 1(t)');
+legend(ax1,'Riferimento w_1(t) (gradino)','Location','best');
+
+% --- d1(t) ---
+ax2 = nexttile(tloA,2);
+plot(ax2, t1, d1, 'LineWidth',1.6, 'Color',colD);
+grid(ax2,'on'); box(ax2,'on');
+ylabel(ax2,'d_1(t) [°C]');
+xlabel(ax2,'t [s]');
+title(ax2,'Scenario lungo — Disturbo d_1(t) (bassa frequenza)');
+legend(ax2,'Disturbo d_1(t) (bassa frequenza)','Location','best');
+
+
+%% ============================================================
+%  FIGURA B — Scenario breve: w2(t), d2(t), n2(t)
+% ============================================================
+
+figure('Name','Punto 4 - Scenario breve (Ingressi)','NumberTitle','off');
+tloB = tiledlayout(3,1);
+tloB.TileSpacing = 'compact';
+tloB.Padding     = 'compact';
+
+% --- w2(t) ---
+ax1 = nexttile(tloB,1);
+plot(ax1, t2, w2, 'LineWidth',1.6, 'Color',colW);
+grid(ax1,'on'); box(ax1,'on');
+ylabel(ax1,'w_2(t) [°C]');
+title(ax1,'Scenario breve — Riferimento w_2(t)');
+legend(ax1,'Riferimento w_2(t) (gradino)','Location','best');
+
+% --- d2(t) ---
+ax2 = nexttile(tloB,2);
+plot(ax2, t2, d2, 'LineWidth',1.6, 'Color',colD);
+grid(ax2,'on'); box(ax2,'on');
+ylabel(ax2,'d_2(t) [°C]');
+title(ax2,'Scenario breve — Disturbo d_2(t)');
+legend(ax2,'Disturbo d_2(t) (bassa frequenza)','Location','best');
+
+% --- n2(t) (zoom) ---
+T_zoom_noise = 2e-3;
+idx_noise = t2 <= T_zoom_noise;
+
+ax3 = nexttile(tloB,3);
+plot(ax3, t2(idx_noise), n2(idx_noise), 'LineWidth',1.6, 'Color',colN);
+grid(ax3,'on'); box(ax3,'on');
+ylabel(ax3,'n_2(t) [°C]');
+xlabel(ax3,'t [s]');
+title(ax3,'Scenario breve — Rumore n_2(t) (zoom 2 ms)');
+legend(ax3,'Rumore n_2(t) (alta frequenza)','Location','best');
+
+
+%% ============================================================
+%  FIGURA C — Uscite totali
+% ============================================================
+
+figure('Name','Punto 4 - Uscite totali','NumberTitle','off');
+tloC = tiledlayout(2,1);
+tloC.TileSpacing = 'compact';
+tloC.Padding     = 'compact';
+
+% --- y_tot1(t) ---
+ax1 = nexttile(tloC,1);
+plot(ax1, t1, y_tot1, 'LineWidth',2.0, 'Color',colY);
+grid(ax1,'on'); box(ax1,'on');
+ylabel(ax1,'y_{tot,1}(t) [°C]');
+title(ax1,'Scenario lungo — Uscita totale y_{tot,1}(t)');
+legend(ax1,'Uscita totale y_{tot,1}(t) (w_1 + d_1)','Location','best');
+
+% --- y_tot2(t) ---
+ax2 = nexttile(tloC,2);
+plot(ax2, t2, y_tot2, 'LineWidth',2.0, 'Color',colY);
+grid(ax2,'on'); box(ax2,'on');
+ylabel(ax2,'y_{tot,2}(t) [°C]');
+xlabel(ax2,'t [s]');
+title(ax2,'Scenario breve — Uscita totale y_{tot,2}(t)');
+legend(ax2,'Uscita totale y_{tot,2}(t) (w_2 + d_2 + n_2)','Location','best');
+
+
+
