@@ -907,30 +907,60 @@ legend(ax3,'Rumore n_2(t) (alta frequenza)','Location','best');
 
 
 %% ============================================================
-%  FIGURA C — Uscite totali
+%  FIGURA C — Uscite totali: y_tot1(t) e y_tot2(t)
 % ============================================================
+
+% Specifiche necessarie
+sovr_max = 0.11;    % sovraelongazione massima ammessa (11%)
+T_star   = 0.01;    % tempo di assestamento al 5% [s]
+
+LV = W_max;   % valore di regime atteso (≈ 4 °C)
 
 figure('Name','Punto 4 - Uscite totali','NumberTitle','off');
 tloC = tiledlayout(2,1);
 tloC.TileSpacing = 'compact';
 tloC.Padding     = 'compact';
 
-% --- y_tot1(t) ---
+%% ---------------------- y_tot1(t): Scenario lungo ----------------------
 ax1 = nexttile(tloC,1);
-plot(ax1, t1, y_tot1, 'LineWidth',2.0, 'Color',colY);
+
+plot(ax1, t1, y_tot1, 'LineWidth',2.0, 'Color',[0.8 0 0]);  
 grid(ax1,'on'); box(ax1,'on');
+
 ylabel(ax1,'y_{tot,1}(t) [°C]');
 title(ax1,'Scenario lungo — Uscita totale y_{tot,1}(t)');
-legend(ax1,'Uscita totale y_{tot,1}(t) (w_1 + d_1)','Location','best');
 
-% --- y_tot2(t) ---
+legend(ax1,'y_{tot,1}(t)','Location','best');
+
+%% ---------------------- y_tot2(t): Scenario breve ----------------------
 ax2 = nexttile(tloC,2);
-plot(ax2, t2, y_tot2, 'LineWidth',2.0, 'Color',colY);
-grid(ax2,'on'); box(ax2,'on');
+hold(ax2,'on'); grid(ax2,'on'); box(ax2,'on');
+
+% Prima traccio la curva
+p2 = plot(ax2, t2, y_tot2, 'LineWidth',2.0, 'Color',[0.8 0 0]);
+
+% Aggiorno i limiti dopo aver tracciato la curva
+yl = ylim(ax2);
+
+% --- Zona di overshoot > 11%  ---
+hOver=patch(ax2, [0 t2(end) t2(end) 0], [LV*(1+Sovr_max) LV*(1+Sovr_max) yl(2) yl(2)], 'r', 'FaceAlpha',0.15, 'EdgeColor','none', 'HandleVisibility','off');
+
+% --- Zona +5% ---
+hBandUp=patch(ax2, [T_star t2(end) t2(end) T_star],  [LV*(1+0.05) LV*(1+0.05) LV*(1+Sovr_max) LV*(1+Sovr_max)], 'g', 'FaceAlpha',0.12, 'EdgeColor','none', 'HandleVisibility','off');
+
+% --- Zona -5% ---
+patch(ax2, [T_star t2(end) t2(end) T_star],  [LV*(1-0.05) LV*(1-0.05) yl(1) yl(1)], 'g', 'FaceAlpha',0.12, 'EdgeColor','none', 'HandleVisibility','off');
+
 ylabel(ax2,'y_{tot,2}(t) [°C]');
 xlabel(ax2,'t [s]');
 title(ax2,'Scenario breve — Uscita totale y_{tot,2}(t)');
-legend(ax2,'Uscita totale y_{tot,2}(t) (w_2 + d_2 + n_2)','Location','best');
+
+legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overshoot (>11%)','Banda \pm5% dopo T^*'}, 'Location','best');
+
+hold(ax2,'off');
+
+hold(ax2,'off');
+
 
 
 
