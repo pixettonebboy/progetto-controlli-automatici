@@ -301,14 +301,14 @@ phi_low  = yl(1);
 phi_high = yl(2);
 
 % Banda disturbo (grigio)
-hDist_phase = patch(ax2, [omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [phi_high,       phi_high,       phi_low,       phi_low], [0.8 0.8 0.8], 'FaceAlpha',0.2,'EdgeColor','none');
+hDist_phase = patch(ax2, [omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [phi_high,phi_high,  phi_low,  phi_low], [0.8 0.8 0.8], 'FaceAlpha',0.2,'EdgeColor','none');
 
 % Banda rumore (giallo)
-hNoise_phase = patch(ax2, [omega_n_min, omega_n_max, omega_n_max, omega_n_min], [phi_high,    phi_high,    phi_low,    phi_low], [1 1 0], 'FaceAlpha',0.2,'EdgeColor','none');
+hNoise_phase = patch(ax2, [omega_n_min, omega_n_max, omega_n_max, omega_n_min], [phi_high, phi_high, phi_low, phi_low], [1 1 0], 'FaceAlpha',0.2,'EdgeColor','none');
 
 % Zona "proibita" di fase per ω ≥ ω_c,min (margine di fase insufficiente)
 % da fase = Mf_des - 180° verso il basso
-hZona_phase = patch(ax2, [omega_c_min, omega_n_min, omega_n_min, omega_c_min],[Mf_des-180,  Mf_des-180,  phi_low,     phi_low], [1 0.7 0.7], 'FaceAlpha',0.5,'EdgeColor','none');
+hZona_phase = patch(ax2, [omega_c_min, omega_n_min, omega_n_min, omega_c_min],[Mf_des-180,  Mf_des-180,  phi_low,  phi_low], [1 0.7 0.7], 'FaceAlpha',0.5,'EdgeColor','none');
 
 % Fase di G(jω) 
 hG_phase = plot(ax2, wG, PhaseG_deg, 'LineWidth',1.5, 'Color',[0 0.3 0.8]);
@@ -825,8 +825,8 @@ fprintf('Rumore di misura n(t) in banda alta (scenario breve, w + d + n):\n');
 fprintf('  max |y_n2(t)|        = %.4e [°C]\n', max_y_n2);
 fprintf('  Ampiezza di ogni sinusoide di n(t) = 3 [°C]\n\n');
 
-fprintf('Nota: scenario lungo per evidenziare la reiezione del disturbo a bassa\n');
-fprintf('      frequenza; scenario breve ad alta risoluzione per il rumore di misura.\n');
+fprintf('scenario lungo per evidenziare la reiezione del disturbo a bassa frequenza\n');
+fprintf('scenario breve per il rumore di misura.\n');
 fprintf('------------------------------------------------------------\n\n');
 
 %% ============================================================
@@ -960,6 +960,7 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
+
 
 
 
