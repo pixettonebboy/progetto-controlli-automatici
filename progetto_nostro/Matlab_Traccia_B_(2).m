@@ -322,6 +322,37 @@ title(ax2, 'Punto 2 - Fase di G(s)');
 
 legend(ax2,  [hG_phase, hDist_phase, hNoise_phase, hZona_phase, hWc_phase], {'\angle G(j\omega)', 'Banda disturbo',  'Banda rumore', 'Zona proibita M_f',  '\omega_{c,min}'}, 'Location','southwest', 'Interpreter','tex','FontSize',9);
 
+%% -----------------  POLI-ZERI DI G(s) -----------------
+
+figure('Name','Punto 2 - Poli e Zeri di G(s)','NumberTitle','off');
+hold on; grid on; box on;
+
+p = pole(G);
+z = zero(G);
+
+% poli (croci)
+plot(real(p), imag(p), 'x', 'MarkerSize',12, 'LineWidth',2);
+
+
+if ~isempty(z)
+    plot(real(z), imag(z), 'o', 'MarkerSize',10, 'LineWidth',2);
+end
+
+% assi
+yline(0,'k:');
+xline(0,'k:');
+
+
+xlim([min(real(p))-1 1]);   
+ylim([-1 1]);               
+
+
+
+xlabel('Real Axis (seconds^{-1})');
+ylabel('Imaginary Axis (seconds^{-1})');
+title('Pole-Zero Map');
+
+legend('Poles','Zeros','Location','best');
 
 %% ======================= PUNTO 3 ==========================
 %   PROGETTO DEL REGOLATORE R(s) E VERIFICA SPECIFICHE
@@ -960,6 +991,7 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
+
 
 
 
