@@ -590,7 +590,7 @@ colL = [0   0.25 1];     % blu scuro
 colS = [0   0.6  0.2];   % verde elegante
 colT = [0.85 0.2  0.2];  % rosso tenue
 
-zoneS = [0.8 1 1];       % disturbo (azzurro )
+zoneS = [0.3 0.55 1];    % disturbo (azzurro )
 zoneT = [1 0.9 0.6];     % rumore (arancio )
 
 %% ======================== MODULO ===========================
