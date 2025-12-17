@@ -62,7 +62,7 @@ f2 = @(TR, Tout, u) ( m_dotA*cA*(Tin - Tout) + aR*(TR - Tout) ) / den2;
 
 % Punto di equilibrio (dato dalla traccia / tabella)
 TR_e   = 175;          % [C] temperatura elemento riscaldante all'equilibrio
-Tout_e = 80;           % [C] temperatura aria in uscita all'equilibrio
+Tout_e = 30.5036;           % [C] temperatura aria in uscita all'equilibrio
 x_e    = [TR_e; Tout_e];
 
 % Ingresso di equilibrio u_e: si impone dTR/dt = 0 all'equilibrio
@@ -133,10 +133,12 @@ fprintf('  u_e    = %8.3f  [W]\n\n', u_e);
 fprintf('VERIFICA EQUILIBRIO:\n');
 fprintf('  f1(TR_e, Tout_e, u_e) = %+10.3e  [°C/s]\n', f1_eq);
 fprintf('  f2(TR_e, Tout_e, u_e) = %+10.3e  [°C/s]\n', f2_eq);
-if max(abs(f1_eq), abs(f2_eq)) > 1e-6
-    fprintf('Le equazioni di stato non soddisfano le condizioni di equilibrio.\n');
-end
 
+if max(abs([f1_eq, f2_eq])) > tol_eq
+    fprintf('Le equazioni di stato non soddisfano le condizioni di equilibrio.\n');
+else
+    fprintf('Equilibrio soddisfatto entro la tolleranza .\n');
+end
 
 fprintf('MATRICE A:\n'); disp(A);
 fprintf('MATRICE B:\n'); disp(B);
@@ -162,12 +164,11 @@ end
 % ========================================================================
 
 % Dal modello di stato (A,B,C,D) si ricava G(s) = ΔT_out(s) / ΔPE(s)
-
-% Spazio di stato -> funzione di trasferimento
-s=tf('s');
-[N,D]=ss2tf(A,B,C,D);
-G=tf(N,D);
+sys = ss(A,B,C,D);
+G   = tf(sys);
+G   = minreal(G);
 zpk(G)
+
 
 % Guadagno statico e poli/zeri
 G0 = dcgain(G);      % guadagno statico G(0)
@@ -767,7 +768,7 @@ Tny = -T;
 info_step = stepinfo(W_max * Twy, 'SettlingTimeThreshold',0.05);  % Ts, overshoot
 
 % Errore a regime sul gradino (da specifica |e_inf| <= 0.002)
-ess = abs(W_max * (1 - dcgain(Twy)));
+ess = abs(W_max - dcgain(Twy)*W_max);
 
 % 4.2 - Simulazione lunga (basse frequenze): w(t), d(t), senza rumore
 t1_final = 60;           % [s] orizzonte lungo per vedere il disturbo
@@ -945,7 +946,7 @@ legend(ax3,'Rumore n_2(t) (alta frequenza)','Location','best');
 sovr_max = 0.11;    % sovraelongazione massima ammessa (11%)
 T_star   = 0.01;    % tempo di assestamento al 5% [s]
 
-LV = W_max;   % valore di regime atteso (≈ 4 °C)
+LV = dcgain(Twy) * W_max;  % valore di regime atteso (≈ 4 °C)
 
 figure('Name','Punto 4 - Uscite totali','NumberTitle','off');
 tloC = tiledlayout(2,1);
@@ -991,6 +992,7 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
+
 
 
 
