@@ -133,7 +133,7 @@ fprintf('  u_e    = %8.3f  [W]\n\n', u_e);
 fprintf('VERIFICA EQUILIBRIO:\n');
 fprintf('  f1(TR_e, Tout_e, u_e) = %+10.3e  [°C/s]\n', f1_eq);
 fprintf('  f2(TR_e, Tout_e, u_e) = %+10.3e  [°C/s]\n', f2_eq);
-
+tol_eq = 1e-4;
 if max(abs([f1_eq, f2_eq])) > tol_eq
     fprintf('Le equazioni di stato non soddisfano le condizioni di equilibrio.\n');
 else
@@ -992,6 +992,7 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
+
 
 
 
