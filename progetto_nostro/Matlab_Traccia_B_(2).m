@@ -1,14 +1,3 @@
-%% =========================================================================
-%  PROGETTO CAT 2024/2025 -- Tipologia B, traccia 2
-%  Punto 1: Modellazione non lineare, punto di equilibrio, linearizzazione
-%           e analisi stabilità sistema linearizzato
-% =========================================================================
-
-% punto 1 --> {10 => 150}
-% punto 2 --> {150 => 360}
-% punto 3 --> {360 => 850}
-% punto 4 --> 850 => 1000}
-
 clear; clc; close all;
 
 
@@ -257,71 +246,113 @@ fprintf('  Banda rumore : [%.2e, %.2e]         [rad/s]\n', omega_n_min, omega_n_
 fprintf('------------------------------------------------------------\n\n');
 
 
-%% ----------------- BODE DI G(s) CON BANDE E VINCOLI -----------------
-
-fig = figure('Name','Punto 2 - Bode di G(s)','NumberTitle','off');
+%% ========================================================================
+%  BODE DELLA PIANTA G(s)
+% ========================================================================
+figure('Name', 'Diagrammi di Bode della pianta G(s)', 'NumberTitle', 'off');
 
 tlo = tiledlayout(2,1);
 tlo.TileSpacing = 'compact';
 tlo.Padding     = 'compact';
 
-% ----------------- MODULO -----------------
+title(tlo,'Bode della pianta G(s)','FontWeight','bold','FontSize',12);
+
+% ---------------- Limiti assi ----------------
+ylim_max_mod = max([max(MagG_dB), A_d]) + 25;
+ylim_min_mod = min([min(MagG_dB), -A_n]) - 25;
+
+% ---------------- Palette colori ----------------
+col_G       = [0.20 0.70 1.00];   % curva G
+col_band_D  = [0.55 0.55 0.55];   % banda disturbo (grigio)
+col_band_N  = [0.95 0.85 0.25];   % banda rumore (giallo)
+col_vin_D   = [0.90 0.20 0.20];   % vincolo disturbo (rosso)
+col_vin_N   = [1.00 0.55 0.20];   % vincolo rumore (arancio)
+col_ref     = [0.85 0.85 0.85];   % riferimenti
+
+%% ===================== MODULO =====================
 ax1 = nexttile(tlo,1);
 hold(ax1,'on'); grid(ax1,'on'); box(ax1,'on');
 set(ax1,'XScale','log');
 xlim(ax1,[omega_plot_min omega_plot_max]);
-ylim(ax1,[mag_min mag_max]);
+ylim(ax1,[ylim_min_mod ylim_max_mod]);
 
-% Banda disturbo [0, omega_dist_max] (grigio)
-hDist_mod = patch(ax1, [omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [mag_max,        mag_max,       mag_min,        mag_min],  [0.8 0.8 0.8], 'FaceAlpha',0.3,'EdgeColor','none');
+% -------- BANDE (sfondo) --------
+hBandD = patch(ax1, [omega_plot_min omega_dist_max omega_dist_max omega_plot_min],[ylim_max_mod ylim_max_mod ylim_min_mod ylim_min_mod], col_band_D, 'FaceAlpha',0.18,'EdgeColor','none');
 
-% Banda rumore [omega_n_min, omega_n_max] (giallo)
-hNoise_mod = patch(ax1,  [omega_n_min, omega_n_max, omega_n_max, omega_n_min], [mag_max,     mag_max,     mag_min,     mag_min], [1 1 0], 'FaceAlpha',0.3,'EdgeColor','none');
+hBandN = patch(ax1, [omega_n_min omega_n_max omega_n_max omega_n_min], [ylim_max_mod ylim_max_mod ylim_min_mod ylim_min_mod], col_band_N, 'FaceAlpha',0.18,'EdgeColor','none');
 
-% Modulo di G(jω)
-hG_mod = plot(ax1, wG, MagG_dB, 'LineWidth',1.5, 'Color',[0 0.3 0.8]);
+% -------- ZONE VINCOLO --------
+% Disturbo: vietato stare sotto A_d
+hVinD = patch(ax1, [omega_plot_min omega_dist_max omega_dist_max omega_plot_min], [A_d A_d ylim_min_mod ylim_min_mod], col_vin_D, 'FaceAlpha',0.20,'EdgeColor',col_vin_D,'LineWidth',1.2);
 
-% Linea verticale in ω_c,min
-hWc_mod = xline(ax1, omega_c_min, 'r--', '\omega_{c,min}', 'LineWidth',1.2,'LabelOrientation','horizontal');
+% Rumore: vietato stare sopra -A_n
+hVinN = patch(ax1, [omega_n_min omega_n_max omega_n_max omega_n_min], [ylim_max_mod ylim_max_mod -A_n -A_n],  col_vin_N, 'FaceAlpha',0.20,'EdgeColor',col_vin_N,'LineWidth',1.2);
 
-ylabel(ax1, '|G(j\omega)| [dB]');
-title(ax1, 'Punto 2 - Modulo di G(s)');
+% -------- CURVA G --------
+hG = plot(ax1, wG, MagG_dB, 'Color',col_G,'LineWidth',2.5,'Marker','.','MarkerSize',6);
 
-legend(ax1, [hG_mod, hDist_mod, hNoise_mod, hWc_mod], {'|G(j\omega)|', 'Banda disturbo', 'Banda rumore', '\omega_{c,min}'}, 'Location','southwest', 'Interpreter','tex', 'FontSize',9);
+% -------- LINEE DI RIFERIMENTO (no legenda) --------
+yline(ax1, A_d,  '--','Color',col_ref,'LineWidth',1.2);
+yline(ax1, -A_n, '--','Color',col_ref,'LineWidth',1.2);
 
-% ----------------- FASE -----------------
+xline(ax1, omega_dist_max, ':','Color',col_ref,'LineWidth',1.2);
+xline(ax1, omega_n_min,    ':','Color',col_ref,'LineWidth',1.2);
+xline(ax1, omega_c_min,    '-.','Color',col_G,'LineWidth',1.4);
+
+% -------- TESTI SUL GRAFICO --------
+text(ax1, omega_plot_min*1.3, A_d+6,  sprintf('A_d = %g dB',A_d),  'Color',col_ref,'FontWeight','bold');
+
+text(ax1, omega_n_max/1.05, -A_n-10, sprintf('-A_n = %g dB',-A_n),  'Color',col_ref,'FontWeight','bold','HorizontalAlignment','right');
+
+text(ax1, omega_dist_max*1.05, ylim_max_mod-18, '\omega_{dist,max}', 'Color',col_ref,'FontWeight','bold');
+
+text(ax1, omega_n_min*1.05, ylim_max_mod-18, '\omega_{n,min}', 'Color',col_ref,'FontWeight','bold');
+
+text(ax1, omega_c_min*1.05,   interp1(wG,MagG_dB,omega_c_min,'linear','extrap')+12,  '\omega_{c,min}', 'Color',col_G,'FontWeight','bold');
+
+ylabel(ax1,'|G(j\omega)| [dB]','FontWeight','bold');
+title(ax1,'Modulo');
+
+legend(ax1, [hG hBandD hBandN hVinD hVinN], {'G(j\omega)', 'Banda disturbo', 'Banda rumore',  'Vincolo disturbo',  'Vincolo rumore'}, 'Location','southwest','FontSize',9);
+
+
+%% ===================== FASE =====================
 ax2 = nexttile(tlo,2);
 hold(ax2,'on'); grid(ax2,'on'); box(ax2,'on');
 set(ax2,'XScale','log');
 xlim(ax2,[omega_plot_min omega_plot_max]);
-ylim(ax2,[phi_min phi_max]);
+ylim(ax2,[-270 10]);
 
-% Limiti locali per patch
-yl = ylim(ax2);
-phi_low  = yl(1);
-phi_high = yl(2);
+% -------- BANDE --------
+patch(ax2,  [omega_plot_min omega_dist_max omega_dist_max omega_plot_min], [20 20 -400 -400],  col_band_D,'FaceAlpha',0.18,'EdgeColor','none');
 
-% Banda disturbo (grigio)
-hDist_phase = patch(ax2, [omega_plot_min, omega_dist_max, omega_dist_max, omega_plot_min], [phi_high,phi_high,  phi_low,  phi_low], [0.8 0.8 0.8], 'FaceAlpha',0.2,'EdgeColor','none');
+patch(ax2,[omega_n_min omega_n_max omega_n_max omega_n_min], [20 20 -400 -400], col_band_N,'FaceAlpha',0.18,'EdgeColor','none');
 
-% Banda rumore (giallo)
-hNoise_phase = patch(ax2, [omega_n_min, omega_n_max, omega_n_max, omega_n_min], [phi_high, phi_high, phi_low, phi_low], [1 1 0], 'FaceAlpha',0.2,'EdgeColor','none');
+% -------- VINCOLO MARGINE DI FASE --------
+fase_limite = -180 + Mf_des;
+hVinMf = patch(ax2, [omega_c_min omega_plot_max omega_plot_max omega_c_min], [fase_limite fase_limite -400 -400], col_vin_D,'FaceAlpha',0.18,'EdgeColor',col_vin_D,'LineWidth',1.2);
 
-% Zona "proibita" di fase per ω ≥ ω_c,min (margine di fase insufficiente)
-% da fase = Mf_des - 180° verso il basso
-hZona_phase = patch(ax2, [omega_c_min, omega_n_min, omega_n_min, omega_c_min],[Mf_des-180,  Mf_des-180,  phi_low,  phi_low], [1 0.7 0.7], 'FaceAlpha',0.5,'EdgeColor','none');
+% -------- CURVA --------
+plot(ax2, wG, PhaseG_deg, 'Color',col_G,'LineWidth',2.5);
 
-% Fase di G(jω) 
-hG_phase = plot(ax2, wG, PhaseG_deg, 'LineWidth',1.5, 'Color',[0 0.3 0.8]);
+% -------- LINEE --------
+yline(ax2,-180,'-','Color',col_ref,'LineWidth',1.2);
+yline(ax2,fase_limite,'--','Color',col_ref,'LineWidth',1.2);
+xline(ax2,omega_c_min,'-.','Color',col_G,'LineWidth',1.4);
 
-% Linea verticale in ω_c,min
-hWc_phase = xline(ax2, omega_c_min, 'r--', '\omega_{c,min}', 'LineWidth',1.2,'LabelOrientation','horizontal');
+% -------- TESTI --------
+text(ax2, omega_plot_min*1.3, -175, '-180^\circ','Color',col_ref,'FontWeight','bold');
 
-xlabel(ax2, '\omega [rad/s]');
-ylabel(ax2, 'Fase [deg]');
-title(ax2, 'Punto 2 - Fase di G(s)');
+text(ax2, omega_c_min*1.05, fase_limite+8, sprintf('M_f^{min} = %.1f^\\circ',Mf_des), 'Color',col_ref,'FontWeight','bold');
 
-legend(ax2,  [hG_phase, hDist_phase, hNoise_phase, hZona_phase, hWc_phase], {'\angle G(j\omega)', 'Banda disturbo',  'Banda rumore', 'Zona proibita M_f',  '\omega_{c,min}'}, 'Location','southwest', 'Interpreter','tex','FontSize',9);
+text(ax2, omega_c_min*1.05, -255,'\omega_{c,min}', 'Color',col_G,'FontWeight','bold');
+
+xlabel(ax2,'Pulsazione [rad/s]','FontWeight','bold');
+ylabel(ax2,'Fase [deg]','FontWeight','bold');
+title(ax2,'Fase');
+
+legend(ax2, hVinMf,{'Vincolo margine di fase'},'Location','southwest','FontSize',9);
+
 
 %% -----------------  POLI-ZERI DI G(s) -----------------
 
@@ -348,12 +379,14 @@ xlim([min(real(p))-1 1]);
 ylim([-1 1]);               
 
 
-
+ 
 xlabel('Real Axis (seconds^{-1})');
 ylabel('Imaginary Axis (seconds^{-1})');
 title('Pole-Zero Map');
 
 legend('Poles','Zeros','Location','best');
+
+
 
 %% ======================= PUNTO 3 ==========================
 %   PROGETTO DEL REGOLATORE R(s) E VERIFICA SPECIFICHE
@@ -438,7 +471,7 @@ elseif PM0 <= -180
     PM0 = PM0 + 360;
 end
 
-margine_sicurezza = 8;             % [deg] margine addizionale per robustezza
+margine_sicurezza = 8;             % [deg] margine addizionale per fase
 PM_des = Mf + margine_sicurezza;   % margine di fase desiderato
 
 % Fase che la rete deve AGGIUNGERE
@@ -616,13 +649,19 @@ hZoneT = patch(ax1, [omega_n_min omega_n_max omega_n_max omega_n_min],  [yl(1) y
 hL = plot(ax1, w, MagL_dB, 'Color',colL, 'LineWidth',1.6, 'DisplayName','L(s)');
 hS = plot(ax1, w, MagS_dB, 'Color',colS, 'LineWidth',1.6, 'DisplayName','S(s)');
 hT = plot(ax1, w, MagT_dB, 'Color',colT, 'LineWidth',1.6, 'DisplayName','T(s)');
+%% --- Punto pulsazione di taglio wc ---
+MagL_wc_dB = interp1(w, MagL_dB, Wpm);   % modulo di L a wc (≈ 0 dB)
+
+hWc = plot(ax1, Wpm, MagL_wc_dB, 'o','MarkerSize',7, 'MarkerFaceColor',[0.55 0 0.75], 'MarkerEdgeColor','k', 'DisplayName', sprintf('\\omega_c = %.2e rad/s', Wpm));
+
 
 %% --- Linee soglia ---
 hSdB = yline(ax1, -A_d, 'Color',[0 0.4 1], 'LineStyle','--', 'LineWidth',1.3, 'DisplayName', sprintf('Soglia S = -%d dB',A_d));
 hTdB = yline(ax1, -A_n, 'Color',[1 0.6 0], 'LineStyle','--', 'LineWidth',1.3, 'DisplayName', sprintf('Soglia T = -%d dB',A_n));
 
 %% --- Legenda  ---
-legend(ax1, [hL hS hT hZoneS hZoneT hSdB hTdB], {'L(s)','S(s)','T(s)', 'Zona disturbo','Zona rumore', sprintf('Soglia S = -%d dB',A_d), sprintf('Soglia T = -%d dB',A_n)}, 'Location','best', 'FontSize',9);
+legend(ax1,  [hL hS hT hWc hZoneS hZoneT hSdB hTdB],  {'L(s)','S(s)','T(s)',  sprintf('\\omega_c = %.2e rad/s',Wpm),  'Zona disturbo','Zona rumore',  sprintf('Soglia S = -%d dB',A_d),  sprintf('Soglia T = -%d dB',A_n)}, 'Location','best', 'FontSize',9);
+
 
 %% ========================= FASE ============================
 ax2 = nexttile(tlo,2);
@@ -700,7 +739,8 @@ hWc_box = patch(ax1, [x_left  x_right  x_right  x_left],[y_top   y_top    y_bott
 
 % --- Punto di crossover ω_c (|L| = 1 -> 0 dB) ---
 L_wc = MagL2_dB(idx_wc);          % MagL2_dB calcolato su w_plot
-h_wc_point = plot(ax1, wc, L_wc, 'o', 'MarkerSize',7, 'LineWidth',1.6, 'Color',[1 0.4 0]);
+h_wc_point = plot(ax1, wc, L_wc, '.', 'MarkerSize',22, 'Color',[1 0.4 0]);
+
 
 % legenda modulo
 legend(ax1, [hGe, hL, hWc_box, h_wc_point], { 'G_e(s)', 'L(s)','\omega \le \omega_{c,min}', '\omega_c: |L| = 1' }, 'Location','eastoutside', 'Interpreter','tex', 'FontSize',9);
@@ -734,13 +774,15 @@ phi_req = -180 + Mf;
 hMf_line = yline(ax2, phi_req, 'Color',[1 0.6 0],'LineStyle','--', 'LineWidth',1.4);
 
 % ====== PALLINA VIOLA: margine di fase a wpm ======
-hMf_point = plot(ax2, Wpm, phase_at_Wpm, 'o', 'Color',[0.7 0 0.9], 'MarkerSize',9, 'LineWidth',1.8);
+hMf_point = plot(ax2, Wpm, phase_at_Wpm, '.', 'Color',[0.7 0 0.9], 'MarkerSize',26);
+
 
 % ====== PUNTO BLU: margine di guadagno (ωgm) ======
 [~, idx_180] = min(abs(PhaseL_deg2 + 180));
 w_180   = w_plot(idx_180);
 phi_180 = PhaseL_deg2(idx_180);
-h_phase180 = plot(ax2, w_180, phi_180, 'o', 'MarkerSize',7, 'LineWidth',1.6, 'Color',[0 0.5 1]);
+h_phase180 = plot(ax2, w_180, phi_180, '.', 'MarkerSize',22, 'Color',[0 0.5 1]);
+
 
 % legenda fase
 legend(ax2, [hMf_rect, hMf_line, hMf_point, h_phase180],{ sprintf('PM = %.1f°', PM), sprintf('Soglia M_f = %.1f°', Mf), '\omega_{pm}', '\omega_{gm} (fase \approx -180°)' }, 'Location','eastoutside', 'Interpreter','tex', 'FontSize',9);
@@ -795,7 +837,7 @@ y_n1   = lsim(Tny, n1, t1);      % sarà tutto zero
 y_tot1 = y_w1 + y_d1 + y_n1;    % risposta totale (lungo termine)
 
 
-% 4.3 - Simulazione breve ad alta risoluzione (alte frequenze):
+% 4.3 - Simulazione breve (alte frequenze):
 %       w(t), d(t), n(t) TUTTI ATTIVI
 t2_final = 0.05;         % [s] orizzonte breve
 dt2      = 1e-6;         % [s] passo piccolo per il rumore
@@ -992,7 +1034,6 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
-
 
 
 
