@@ -29,7 +29,7 @@ m_dotA = 0.2;         % portata massica aria (kg/s)
 Tin    = 28;          % temperatura aria ingresso (°C)
 kappa  = 3e-3;        % coefficiente di variazione della resistenza con la temperatura (1/°C)
 
-% Coefficienti utili
+% Coefficienti 
 aR   = hR * AR;       % coeff. scambio termico globale (W/°C)
 den1 = mR * cR;       % capacità termica resistenza (J/°C)
 den2 = mA * cA;       % capacità termica aria (J/°C)
@@ -521,8 +521,8 @@ PhaseT_deg = squeeze(PhaseT);
 idx_d = w <= omega_dMAX;
 idx_n = (w >= omega_n_min) & (w <= omega_n_max);
 
-maxS_d = max(MagS_dB(idx_d));   % target: <= -A_d
-maxT_n = max(MagT_dB(idx_n));   % target: <= -A_n
+maxS_d = max(MagS_dB(idx_d));   % <= -A_d
+maxT_n = max(MagT_dB(idx_n));   % <= -A_n
 
 [GM, PM, Wgm, Wpm] = margin(L); % margini di stabilità
 
@@ -1034,6 +1034,7 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
+
 
 
 
