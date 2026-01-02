@@ -1,3 +1,12 @@
+%% ------------------------------------------------------------------------
+%          ----PROGETTO CAT 2025/2026 ----- Tipologia B traccia 2
+%          DI :
+%               Achille Pisani
+%               Alessandro Parmeggiani
+%               Youssef Esam Ebrahim Abou Aiesh
+%
+% ------------------------------------------------------------------------
+
 clear; clc; close all;
 
 
@@ -1034,10 +1043,6 @@ legend(ax2, [p2, hOver, hBandUp], {'y_{tot,2}(t) (w_2 + d_2 + n_2)', 'Zona overs
 hold(ax2,'off');
 
 hold(ax2,'off');
-
-
-
-
 
 
 
