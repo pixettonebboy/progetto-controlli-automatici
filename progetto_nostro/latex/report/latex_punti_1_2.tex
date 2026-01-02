@@ -1,0 +1,1220 @@
+\documentclass{article}
+
+\usepackage{graphicx} % per immagini
+\usepackage{amsmath} % per matematica
+\usepackage{amsfonts}   %per avere "font matematico"
+\usepackage[a4paper, margin=2cm]{geometry} %margine di spazio dai bordi pagina (+ provarne altri)
+\usepackage{booktabs}  % bordi belli tabella
+\usepackage{tabularx}  % larghezza flessibile tabella
+\usepackage{float}
+\usepackage{mathtools} %per simboli matematici (come :=)
+\usepackage[table]{xcolor} % colore righe
+\usepackage{array}      % centrare verticalment
+\usepackage[hidelinks]{hyperref}
+\usepackage{tcolorbox}
+\usepackage{siunitx} %per notazione scentifica
+\usepackage{embedfile} %per inserire pdf (alla fine graphicx)
+
+\title{
+	\textbf{\LARGE Controlli Automatici T:}\\
+	\textbf{\LARGE Controllo di un riscaldatore elettrico}\\[0.2cm]
+	\large Progetto Tipologia b - Traccia 2
+}
+\author{
+	Achille Pisani \\
+	Alessandro Parmeggiani \\
+	Youssef Esam Ebrahim Abou Aiesh
+}
+
+\date{}
+
+%cambio il nome delle immagini da "Figure" a "Figura" e tabella=.
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabella}
+
+\begin{document}
+	
+	%TAG UTILIZZATI: per figure "fig:", per equazioni "eq:", per sezioni "sec:", tabella "tab:"
+	
+	%pagina 1: titolo
+	\maketitle
+	\clearpage
+	
+	%pagina 2: sommario
+	\tableofcontents
+	\clearpage
+	
+	%metto sectionCounter-=1 per partire da cap. 0 e avere l'intro non coincidente con i punti.
+	\setcounter{section}{-1}
+	
+	%sezione introduttiva ()
+	\section{Introduzione} \label{sec:introduzione}
+	
+	\subsection{Descrizione del problema}
+	
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.4\textwidth]{figs/Schema-illustrativo-riscaldatore.png}
+		\caption{Schema illustrativo del riscaldatore.}
+		\label{fig:schemaScaldatore}
+	\end{figure}
+	
+	Il sistema oggetto di studio è un riscaldatore elettrico che trasferisce calore a un flusso
+d’aria in transito, come mostrato in Figura~\ref{fig:schemaScaldatore}.
+La sua dinamica è descritta da due equazioni differenziali del primo ordine che descrivono
+l’evoluzione della temperatura del riscaldatore e dell’aria in uscita:
+
+	\begin{align}
+		m_R c_R \frac{dT_R(t)}{dt} &= h_R A_R (T_{\text{out}}(t) - T_R(t)) + \frac{P_E(t)}{(1 + \kappa T_R(t))} \label{eq:diff1} \\
+		m_A c_A \frac{dT_{\text{out}}(t)}{dt} &= \dot{m}_A c_A (T_{\text{in}} - T_{\text{out}}(t)) 
+		+ h_R A_R (T_R(t) - T_{\text{out}}(t)). \label{eq:diff2}
+	\end{align}
+	
+	\subsection{Parametri}
+	
+	I parametri forniti dalla traccia sono:
+	\begin{itemize}
+		\item $T_R(t)$ è la temperatura del riscaldatore [$^\circ$C];
+		\item $T_{\text{out}}(t)$ è la temperatura dell'aria in uscita dal riscaldatore [$^\circ$C];
+		\item $P_E(t)$ è la potenza elettrica fornita [$\mathrm{W}$];
+		\item $T_{\text{in}}$ è la temperatura dell'aria in ingresso (ambiente a temperatura costante) [$^\circ$C];
+		\item $m_R$ è la massa del riscaldatore [$\mathrm{kg}$];
+		\item $c_R$ è il calore specifico del riscaldatore [$\mathrm{J/(kg \cdot ^\circ C)}$];
+		\item $h_R$ è il coefficiente di convezione [$\mathrm{W/(m^2 \cdot ^\circ C)}$];
+		\item $A_R$ è l’area di scambio termico tra riscaldatore e aria [$\mathrm{m^2}$];
+		\item $\kappa$ è il coefficiente di variazione della resistenza con la temperatura [$1/^\circ\mathrm{C}$];
+		\item $m_A$ è la massa dell'aria [$\mathrm{kg}$];
+		\item $c_A$ è il calore specifico dell'aria [$\mathrm{J/(kg \cdot ^\circ C)}$];
+		\item $\dot{m}_A$ è la portata massica dell’aria [$\mathrm{kg/s}$].
+	\end{itemize}
+	Si supponga di poter misurare la temperatura dell’aria in uscita dal riscaldatore $T_{\text{out}}(t)$ e di poter agire sulla potenza elettrica fornita al riscaldatore $P_E(t)$.
+	\clearpage
+	
+	%tabella parametri
+	\vspace*{\fill} %per metterla esattamente al centro della pagina
+	\begin{table}[h!]    
+		\centering
+		\renewcommand{\arraystretch}{1.5} % altezza righe
+		\label{tab:parametri}
+		
+		\rowcolors{2}{gray!15}{white} % righe alternate grigio chiaro e bianco
+		\begin{tabularx}{0.9\textwidth}{>{\raggedright\arraybackslash}p{4cm} X}
+			\toprule
+			\rowcolor{gray!30} Parametro & Valore \\
+			\midrule
+			$h_R$              & $50~\mathrm{W/(m^2 \cdot ^\circ C)}$      \\
+			$A_R$              & $0,07~\mathrm{m^2}$                        \\
+			$c_R$              & $840,8~\mathrm{J/(kg \cdot ^\circ C)}$     \\
+			$c_A$              & $1010~\mathrm{J/(kg \cdot ^\circ C)}$      \\
+			$m_R$              & $2,542~\mathrm{kg}$                        \\
+			$m_A$              & $0,1041~\mathrm{kg}$                        \\
+			$\dot{m}_A$        & $0,2~\mathrm{kg/s}$                         \\
+			$T_{\text{in}}$    & $28~^\circ\mathrm{C}$                        \\
+			$\kappa$           & $3 \cdot 10^{-3} \, (1/^\circ\mathrm{C})$ \\
+			$T_{\text{R,e}}$   & $175~^\circ\mathrm{C}$                       \\
+			$T_{\text{out,e}}$ & $30,5036~^\circ\mathrm{C}$                        \\
+			\bottomrule
+		\end{tabularx}
+		\caption{Valori dei parametri del riscaldatore}
+	\end{table}
+	\vspace*{\fill}
+	\clearpage
+	
+	
+	\section{Linearizzazione del sistema}
+	\subsection{Richieste}
+	
+	
+	\begin{tcolorbox}[
+		colback=gray!10,
+		colframe=black,
+		left=8pt,
+		right=8pt,
+		top=8pt,
+		bottom=8pt
+		]
+		
+		Si riporti il sistema (\ref{fig:schemaScaldatore}) nella forma di stato
+		\[
+		\dot{x} = f(x, u) \tag{3a} \label{eq:3a}
+		\]
+		\[
+		y = h(x, u). \tag{3b} \label{eq:3b}
+		\]
+		
+		In particolare, si dettagli:
+		\begin{itemize}
+			\item la variabile di stato;
+			\item la variabile d’ingresso;
+			\item la variabile d’uscita;
+			\item la forma delle funzioni \(f\) e \(h\).
+		\end{itemize}
+		
+		A partire dai valori di equilibrio \(T_{R,e}\) e \(T_{\text{out},e}\) (forniti in tabella), si trovi l’intera coppia di equilibrio \((x_e, u_e)\) e si linearizzi il sistema non lineare (\ref{eq:sistema}) nell’equilibrio, così da ottenere un sistema linearizzato del tipo
+		\[
+		\delta\dot{x} = A\,\delta x + B\,\delta u \tag{4a} \label{eq:4a}
+		\]
+		\[
+		\delta y = C\,\delta x + D\,\delta u \tag{4b} \label{eq:4b}
+		\]
+		con opportune matrici \(A\), \(B\), \(C\) e \(D\).
+		
+	\end{tcolorbox}
+	
+	%metodo alternativo per scrivere le variabili
+	% \subsection{Variabili del sistema}
+	
+	% \begin{itemize}
+		%     \item 
+		%     \[
+		%     x(t) = 
+		%     \begin{bmatrix}
+			%         x_1(t) \\
+			%         x_2(t)
+			%     \end{bmatrix}
+		%     =
+		%     \begin{bmatrix}
+			%         T_R(t) \\
+			%         T_{\text{out}}(t)
+			%     \end{bmatrix}
+		%     \]
+		%     è il vettore di stato, che comprende:
+		%     \begin{itemize}
+			%         \item \(T_R(t)\): temperatura del riscaldatore \((^\circ\mathrm{C})\),
+			%         \item \(T_{\text{out}}(t)\): temperatura dell’aria in uscita \((^\circ\mathrm{C})\).
+			%     \end{itemize}
+		
+		%     \item 
+		%     \[
+		%     u(t) = P_E(t)
+		%     \]
+		%     è l’ingresso di controllo, ovvero la potenza elettrica fornita al riscaldatore \((\mathrm{W})\).
+		
+		%     \item 
+		%     \[
+		%     y(t) = T_{\text{out}}(t)
+		%     \]
+		%     è l’uscita del sistema, ovvero la temperatura dell’aria in uscita \((^\circ\mathrm{C})\).
+		% \end{itemize}
+	
+	\subsection{Variabili del sistema}
+	
+	Le variabili individuate per descrivere il sistema in forma di stato sono:
+	
+	\begin{itemize}
+		\item Lo stato:
+		\[
+		x(t) \coloneqq
+		\begin{bmatrix}
+			x_1(t) \\
+			x_2(t)
+		\end{bmatrix}
+		=    
+		\begin{bmatrix}
+			T_R(t) \\
+			T_{\text{out}}(t)
+		\end{bmatrix}
+		\]
+		dove \(T_R(t)\) è la temperatura del riscaldatore \((^\circ\mathrm{C})\) e
+		\(T_{\text{out}}(t)\) è la temperatura dell’aria in uscita \((^\circ\mathrm{C})\).
+		
+		\item L’ingresso:
+		\[
+		u(t) \coloneqq P_E(t)
+		\]
+		ovvero la potenza elettrica fornita al riscaldatore \((\mathrm{W})\).
+		
+		\item L’uscita:
+		\[
+		y(t) \coloneqq T_{\text{out}}(t) = x_2(t)
+		\]
+		ovvero la temperatura dell’aria in uscita \((^\circ\mathrm{C})\).
+	\end{itemize}
+	
+	\subsection{Espressione del sistema in forma di stato}
+	
+	Il sistema può essere descritto mediante le seguenti equazioni:
+	
+	\begin{equation}
+		\dot{x}(t) = f(x(t),u(t)) =
+		\begin{bmatrix}
+			f_1(T_R(t), T_{\text{out}}(t), u(t)) \\
+			f_2(T_R(t), T_{\text{out}}(t), u(t))
+		\end{bmatrix},
+		\qquad
+		y(t) = h(x(t),u(t)) =x_2(t)= T_{\text{out}}(t). \label{eq:sistema}
+	\end{equation}
+	
+	Dove, nel dettaglio, le componenti di stato sono governate dalle seguenti equazioni:
+	
+	\[
+	f_1(T_R, T_{\text{out}}, u)
+	= 
+	\frac{ a_R \left( T_{\text{out}} - T_R \right) + \displaystyle\frac{u}{1 + \kappa T_R} }
+	{ m_R c_R },
+	\]
+	
+	\[
+	f_2(T_R, T_{\text{out}}, u)
+	=
+	\frac{ \dot{m}_A c_A (T_{\text{in}} - T_{\text{out}})
+		+ a_R (T_R - T_{\text{out}}) }
+	{ m_A c_A }.
+	\]
+	
+	Pertanto, la forma di stato completa risulta:
+	
+	\[
+	\dot{x}(t) =
+	\begin{bmatrix}
+		\displaystyle 
+		\frac{ a_R (T_{\text{out}} - T_R) + \frac{u}{1+\kappa T_R} }
+		{ m_R c_R }
+		\\[10pt]
+		\displaystyle
+		\frac{
+			\dot{m}_A c_A (T_{\text{in}} - T_{\text{out}}) + a_R (T_R - T_{\text{out}})
+		}
+		{ m_A c_A }
+	\end{bmatrix},
+	\qquad
+	y(t) = T_{\text{out}}(t).
+	\]
+	
+	\subsection{Analisi del sistema}
+	Tramite le equazioni possiamo notare che il sistema è:
+	\begin{itemize}
+		\item \textbf{Tempo invariante}, poiché i coefficienti
+        $h_R$ (coefficiente di convezione termica),
+       $A_R$ (area di scambio),
+       $m_R$ e $m_A$ (masse del riscaldatore e dell’aria),
+       $c_R$ e $c_A$ (capacità termiche specifiche del riscaldatore e dell’aria),
+       $\dot{m}_A$ (portata massica dell’aria),
+        $\kappa$ (coefficiente di non linearità),
+        $T_{\text{in}}$ (temperatura di ingresso dell’aria)
+   sono assunti costanti.
+
+		\item \textbf{SISO}, poichè l'equazione di uscita (\ref{eq:3b}) ha dimensione della variabile d' uscita : $p=1$ , e  la
+		dimensione della variabile di ingresso è  $m = 1$ , quindi abbiamo che ($p=m=1$).
+		\item \textbf{Strettamente proprio}, poichè $y(t)=T_{out}(t)$, quindi l'uscita non dipende dall'ingresso, ma solo dallo stato del sistema .
+	\end{itemize}
+	
+	\subsection{Coppia di equilibrio}
+	Dato un sistema tempo invariante continuo di tipo $\dot{x}(t) = f(x(t),u(t))$, abbiamo che \((x_e, u_e)\) è una coppia di equilibrio se $f(x_e, u_e)=0$.
+    L’individuazione di una coppia di equilibrio è necessaria ai fini della linearizzazione
+    del modello non lineare e corrisponde, dal punto di vista fisico, a una condizione di
+    bilancio termico in cui la potenza elettrica fornita al riscaldatore compensa le perdite.
+    di calore dovute allo scambio con l’aria.
+
+	\subsubsection{Punto e ingresso di equilibrio}
+	La traccia fornisce direttamente i valori di equilibrio delle variabili di stato.
+    Definiamo quindi lo stato di equilibrio come:
+	
+	\begin{equation}
+		x_e = 
+		\begin{bmatrix}
+			T_{R,e} \\[2mm]
+			T_{out,e}
+		\end{bmatrix}
+		=
+		\begin{bmatrix}
+			175 ^\circ\mathrm{C} \\[2mm]
+			30,5036 ^\circ\mathrm{C}
+		\end{bmatrix}
+	\end{equation}
+
+  L’ingresso di equilibrio \(u_e\) può essere determinato imponendo l’annullamento
+della derivata della temperatura del riscaldatore. In particolare, ponendo
+\(\dot{T}_R = 0\) nell’equazione di stato associata al riscaldatore,
+definendo la costante $K_{T_R,e} \, = \, 1+ K \, T_{R,e}$, otteniamo l'ingresso di equilibrio:
+
+\begin{equation}
+0 = h_R A_R \left( T_{\text{out},e} - T_{R,e} \right)
++ \frac{u_e}{1 + \kappa T_{R,e}} .
+\end{equation}
+Da cui segue:
+\begin{equation}
+u_e = P_{E,e}= -\, a_R \, (T_{\text{out},e} - T_{R,e}) \, K_{T_R,e}
+\end{equation}
+\begin{equation}
+u_e = 771{,}250 \,\mathrm{W}
+\end{equation}
+
+	\subsubsection{Verifica dell'equilibrio nel modello non lineare}
+	
+	Per verificare che \((x_e, u_e)\) è una coppia di equilibrio, valutiamo le equazioni nel punto $\left(T_{R,e},\, T_{\text{out},e},\, u_e\right)$:
+	
+	\[
+	f_1(T_{R,e}, T_{\text{out},e}, u_e), \qquad
+	f_2(T_{R,e}, T_{\text{out},e}, u_e).
+	\]
+	Possiamo notare che corrispondono alle $\dot{T}_R$ e $\dot{T}_{\text{out}}$ del punto di equilibrio.
+	
+	Dai calcoli otteniamo che:
+	
+	\[
+	f_1(T_{R,e}, T_{\text{out},e}, u_e) = 0 \; \text{[°C/s]},
+	\qquad
+	f_2(T_{R,e}, T_{\text{out},e}, u_e) \approx 9,7 \cdot 10^{-5}\ \; \text{[°C/s]}.
+	\]
+	Benchè il primo valore sia nullo, il secondo non è esattamente uguale a 0, ma, essendo un valore molto vicino allo 0 possiamo considerare soddisfatta la condizione e supporre \((x_e, u_e)\) coppia di equilibrio.
+	Per procedere in maniera corretta senza supposizioni, possiamo prendere una tolleranza di $10^{-4}$.
+    Perciò :la verifica numerica del modello non lineare nel punto (xe, ue) mostra che le derivate di
+    stato risultano nulle entro la tolleranza numerica adottata. In particolare, la piccola discrepanza residua           osservata nella derivata di Tout è attribuibile agli errori di approssimazione
+    numerica e non compromette la validità della coppia di equilibrio individuata.
+	
+	
+	\subsection{Linearizzazione}
+	
+	Al fine di analizzare il comportamento del sistema in prossimità del punto di equilibrio
+\((x_e, u_e)\) e di procedere alla progettazione del regolatore, il modello non lineare
+viene linearizzato mediante uno sviluppo di Taylor al primo ordine.
+	Se il sistema linearizzato risulta asintoticamente stabile intorno a questo punto, allora lo sarà anche quello non lineare.
+	Pertanto possiamo scrivere il sistema nella seguente foma:
+	
+	\[
+	\dot{x}(t) = A \, x(t) + B \, u(t), \qquad
+	y(t) = C \, x(t) + D \, u(t),
+	\]
+	dove \( A \in \mathbb{R}^{2\times 2} \), \( B \in \mathbb{R}^{2\times 1} \),
+	\( C \in \mathbb{R}^{1\times 2} \), \( D \in \mathbb{R}^{1\times 1} \).
+
+Introducendo le variazioni rispetto al punto di equilibrio
+\[
+\delta x(t) = x(t) - x_e, \qquad
+\delta u(t) = u(t) - u_e, \qquad
+\delta y(t) = y(t) - y_e,
+\]
+con \(y_e = h(x_e, u_e)\), il sistema linearizzato assume la forma:
+\begin{align}
+\delta \dot{x}(t) &= A\,\delta x(t) + B\,\delta u(t), \\
+\delta y(t) &= C\,\delta x(t) + D\,\delta u(t).
+\end{align}
+
+Le matrici \(A\), \(B\), \(C\) e \(D\) rappresentano rispettivamente le Jacobiane del modello
+non lineare rispetto alle variabili di stato e all’ingresso, valutate nel punto di equilibrio:
+\[
+A = \left.\frac{\partial f(x,u)}{\partial x}\right|_{(x_e,u_e)}, \qquad
+B = \left.\frac{\partial f(x,u)}{\partial u}\right|_{(x_e,u_e)}.
+\]
+    \[
+C = \left.\frac{\partial h(x,u)}{\partial x}\right|_{(x_e,u_e)}, \qquad
+D = \left.\frac{\partial h(x,u)}{\partial u}\right|_{(x_e,u_e)}.
+\]
+
+    \subsubsection{Calcolo delle jacobiane}
+	Per effettuare la linearizzazione è necessario ricavare le jacobiane delle funzioni di stato \( f(x,u) \) rispetto alle variabili di stato e all’ingresso, valutandole nel punto di equilibrio \((x_e, u_e)\).
+    Nel presente elaborato il calcolo delle Jacobiane non è stato effettuato in forma analitica,
+bensì tramite un’approssimazione numerica delle derivate parziali mediante il metodo delle
+differenze finite centrate. In particolare, fissato un passo \(\Delta > 0\) sufficientemente
+piccolo, le derivate sono state approssimate come:
+
+\begin{align}
+\left.\frac{\partial f_i}{\partial x_j}\right|_{(x_e,u_e)} &\approx
+\frac{f_i(x_e + \Delta e_j, u_e) - f_i(x_e - \Delta e_j, u_e)}{2\Delta},
+\qquad i,j = 1,2, \\
+\left.\frac{\partial f_i}{\partial u}\right|_{(x_e,u_e)} &\approx
+\frac{f_i(x_e, u_e + \Delta) - f_i(x_e, u_e - \Delta)}{2\Delta},
+\qquad i = 1,2,
+\end{align}
+
+	
+	La matrice di stato è:
+	\begin{equation}
+		A_e = \left.\frac{\partial f(x,u)}{\partial x}\right|_{(x_e,u_e)}
+		=
+		\begin{bmatrix}
+			\dfrac{\partial f_1}{\partial T_R} & \dfrac{\partial f_1}{\partial T_{\text{out}}} \\[6pt]
+			\dfrac{\partial f_2}{\partial T_R} & \dfrac{\partial f_2}{\partial T_{\text{out}}}
+		\end{bmatrix}_{(x_e,u_e)}
+		=
+		\begin{bmatrix}
+			-\num{2.1e-3} & \num{1.6e-3} \\
+			0.0333 & -1.9545
+		\end{bmatrix}.
+	\end{equation}
+	
+	Da $A_{11}$ capiamo che la dinamica di $T_R$ è lenta; da $A_{22}$ capiamo che la dinamica di $T_{out}$ è veloce.
+	
+	La matrice d’ingresso è:
+	\begin{equation}
+		B_e = \left.\frac{\partial f(x,u)}{\partial u}\right|_{(x_e,u_e)}
+		=
+		\begin{bmatrix}
+			\dfrac{\partial f_1}{\partial u} \\[6pt]
+			\dfrac{\partial f_2}{\partial u}
+		\end{bmatrix}_{(x_e,u_e)}
+		=
+		\begin{bmatrix} 
+			
+			\num{3.068e-4}\\
+			0
+		\end{bmatrix}.
+	\end{equation}
+	
+	Da $B_{2}$ capiamo che l'ingresso non entra direttamente nell'equazione; da $B_{1}$ capiamo che \dots.
+	
+	Poiché la sola uscita del sistema è la temperatura \( T_{\text{out}} \), (sistema SISO) si ottiene:
+	\begin{equation}
+		C_e = \left.\frac{\partial h(x,u)}{\partial x}\right|_{(x_e,u_e)}
+		= \begin{bmatrix} 0 & 1 \end{bmatrix},
+		\qquad
+		D_e = \left.\frac{\partial h(x,u)}{\partial u}\right|_{(x_e,u_e)}
+		= 0.
+	\end{equation}
+	\( A_e \) 
+	Il sistema linearizzato risulta dunque:
+	\begin{equation}
+		\delta \dot{x}(t) = A_e \, \delta x(t) + B_e \, \delta u(t),
+		\qquad
+		\delta y(t) = C_e \, \delta x(t) + D_e \, \delta u(t).
+	\end{equation}
+	
+	\subsubsection{Autovalori e stabilità}
+
+La stabilità locale del sistema linearizzato può essere analizzata studiando gli autovalori della matrice A. In particolare, il sistema linearizzato è asintoticamente stabile se e solo se tutti gli autovalori di A hanno parte reale negativa. Nel caso in esame, gli autovalori della matrice \( A_e \)  si trovano risolvendo il polinomio caratteristico :
+	\[
+	\det(A_e - \lambda I) = 0.
+	\]
+	
+	Gli autovalori calcolati numericamente sono:
+	\[
+	\lambda_1 = -\num{2.1e-3}, \qquad
+	\lambda_2 = -1.9545.
+	\]
+	
+	Poiché entrambi presentano parte reale negativa, il sistema linearizzato risulta asintoticamente stabile nell’intorno del punto di equilibrio considerato. Si osserva inoltre che i due autovalori sono separati di diversi ordini di grandezza. Il polo λ1 è associato a una dinamica lenta, mentre il polo λ2 descrive una dinamica più rapida 
+	\[
+	\Re(\lambda_1) < 0, \qquad \Re(\lambda_2) < 0.
+	\]
+	
+	Di conseguenza, anche il sistema non lineare risulta localmente stabile
+	attorno al punto di equilibrio.
+	
+	\section{Funzione di trasferimento}
+	
+	\subsection{Richieste}
+	\begin{tcolorbox}[
+		colback=gray!10,
+		colframe=black,
+		left=8pt,
+		right=8pt,
+		top=8pt,
+		bottom=8pt
+		]
+		Si calcoli la funzione di trasferimento da $\delta u$ a $\delta y$, 
+		ovvero la funzione $G(s)$ tale che
+		$
+		\delta Y(s) = G(s)\, \delta U(s).
+		$
+	\end{tcolorbox}
+	
+	\subsection{Definizione della funzione di trasferimento $G(s)$}
+	
+	Dato il modello nello spazio di stato linearizzato del sistema
+	\[
+	\dot{x}(t) = A \, x(t) + B \, u(t), \qquad
+	y(t) = C \, x(t) + D \, u(t),
+	\]
+	
+	è possibile definire la funzione di trasferimento $G(s)$ come il rapporto tra la trasformata di Laplace dell’uscita e quella dell’ingresso, assumendo condizioni iniziali nulle $x(0)=0$.
+	
+	Applicando la trasformata di Laplace alle equazioni del sistema linearizzato si ottiene:
+\begin{align}
+X(s) &= (sI - A)^{-1} x(0) + (sI - A)^{-1} B\,U(s), \label{eq:laplace_state} \\
+Y(s) &= C(sI - A)^{-1} x(0) +
+\left[ C(sI - A)^{-1} B + D \right] U(s). \label{eq:laplace_output}
+\end{align}
+
+La funzione di trasferimento \(G(s)\) è definita come la trasformata di Laplace della
+risposta impulsiva del sistema, ovvero l’uscita generata in risposta a un ingresso impulsivo.
+Poiché l’uscita può essere espressa come il prodotto di convoluzione tra l’ingresso \(u(t)\)
+e la risposta impulsiva \(g(t)\),
+\[
+y(t) = u(t) \ast g(t),
+\]
+nel dominio di Laplace vale la relazione:
+\[
+Y(s) = U(s)\,G(s).
+\]
+
+Considerando esclusivamente la risposta forzata del sistema e assumendo condizioni
+iniziali nulle, ovvero \(x(0) = 0\), si ottiene:
+\begin{equation}
+Y_f(s) = \left[ C(sI - A)^{-1} B + D \right] U(s).
+\end{equation}
+
+Da cui segue la definizione della funzione di trasferimento:
+\begin{equation}
+G(s) = \frac{Y_f(s)}{U(s)} = C(sI - A)^{-1} B + D.
+\end{equation}
+
+Nel caso di sistemi SISO, la funzione di trasferimento assume la forma di un rapporto
+tra polinomi:
+\begin{equation}
+G(s) = \frac{N(s)}{D(s)}.
+\end{equation}
+
+	dove il denominatore \(D(s) = \det(sI - A)\) coincide con il polinomio caratteristico
+della matrice \(A\).
+
+	
+	\subsection{Calcolo della funzione di trasferimento $G(s)$}
+	
+	Considerata la funzione di trasferimento:
+	\begin{equation}
+		G(s)=\frac{\Delta T_{out}(s)}{\Delta PE(s)}
+	\end{equation}
+    La funzione di trasferimento del sistema linearizzato è data da:
+\begin{equation}
+G(s) = C_e (sI - A_e)^{-1} B_e + D_e.
+\label{eq:tf_linearizzata}
+\end{equation}
+
+dove \(A_e\), \(B_e\), \(C_e\) e \(D_e\) sono le matrici del modello linearizzato valutate
+nel punto di equilibrio. Nel caso in esame, l’inverso della matrice \((sI - A_e)\) risulta:
+\begin{equation}
+(sI - A_e)^{-1} =
+\begin{bmatrix}
+\dfrac{s + 0.95}{s^2 + 2.00s + 0.84} &
+\dfrac{-0.45}{s^2 + 2.00s + 0.84} \\[0.3cm]
+\dfrac{-0.35}{s^2 + 2.00s + 0.84} &
+\dfrac{s + 1.05}{s^2 + 2.00s + 0.84}
+\end{bmatrix}.
+\label{eq:inv_matrix}
+\end{equation}
+
+Sostituendo le matrici
+\[
+C_e =
+\begin{bmatrix}
+0 & 1
+\end{bmatrix},
+\qquad
+B_e =
+\begin{bmatrix}
+-90 \\
+5
+\end{bmatrix},
+\qquad
+D_e = 0,
+\]
+si ottiene la funzione di trasferimento della pianta:
+\begin{equation}
+G(s) = \frac{0.0103}{s^2 + 1.9566s + 0.0041}.
+\label{eq:tf_pianta}
+\end{equation}
+
+Ponendo \(s = j\omega\), la funzione di trasferimento in frequenza assume la forma:
+\begin{equation}
+G(j\omega) = \left. \frac{0.0103}{s^2 + 1.9566s + 0.0041} \right|_{s = j\omega}.
+\label{eq:tf_freq}
+\end{equation}
+
+	
+	\subsubsection{Guadagno statico}
+	Definiamo il guadagno statico della pianta come:
+	
+	\begin{equation}
+		G(0) = \lim_{s \to 0} G(s)
+		= \lim_{s \to 0} \left[ C (sI - A)^{-1} B + D \right]
+		= -\,C A^{-1} B + D
+		= 2,518\cdot10^{-3} \quad\frac{^\circ\mathrm{C}}{W}
+	\end{equation}
+    e rappresenta la variazione a regime della temperatura dell’aria in uscita in risposta a una variazione unitaria della potenza elettrica fornita al riscaldatore. 
+	
+	\subsubsection{Poli e zeri}
+	Data la funzione di trasferimento %mettere poi label all'equation
+	\[
+	G(s)=\dfrac{N(s)}{D(s)}
+	\]
+	Definiamo come \textbf{poli} di $G(s)$ le radici del denominatore $D(s)$ e \textbf{zeri} le radici del numeratore $N(s)$.
+	\\ Avremo che i poli di $G(s)$ sono:
+	\begin{equation}
+		p_1 = -1,9545 \ \frac{1}{s} \ , 
+		\qquad 
+		p_2 = -0,0021 \ \frac{1}{s}.
+	\end{equation}
+	
+	Si osserva che i poli di G(s) coincidono con gli autovalori della matrice A.
+	Tutti i poli presentano parte reale negativa; il sistema è quindi BIBO stabile.
+	
+	Per quanto riguarda gli zeri di $G(s)$, si può notare che $G(s)$ non ha nessuno zero finito.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto2-Poli_e_Zeri_di_G(s).pdf}
+	\end{figure}
+	
+	\subsubsection{Funzione di trasferimento finale}
+	
+	La funzione di trasferimento della pianta può quindi essere espressa come:
+	\[
+	G(s) = \frac{1{,}03 \cdot 10^{-5}}{(s + 1{,}9545)(s + 0{,}0021)}.
+	\]
+	
+	Mostriamo il corrispondente diagramma di Bode:
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto2-Bode_di_G(s).pdf}
+	\end{figure}
+	
+	\section{Progettazione del regolatore}
+	
+	
+	\subsection{Richieste}
+	
+	\begin{tcolorbox}[
+		colback=gray!10,
+		colframe=black,
+		left=8pt,
+		right=8pt,
+		top=8pt,
+		bottom=8pt
+		]
+		
+		Si progetti un regolatore (fisicamente realizzabile) considerando le seguenti specifiche:
+		\\\\
+		1) Errore a regime $|e_{\infty}| \le e^{\star} = 0.002$ in risposta a un gradino
+		$w(t) = W \cdot \mathbf{1}(t)$ e $d(t) = D \cdot \mathbf{1}(t)$ con ampiezze
+		$W \le 4$ e $D \le 3.5$.
+		\\\\
+		2) Per garantire una certa robustezza del sistema si deve avere un margine di fase
+		$M_f \ge 50^\circ$.
+		\\\\
+		3) Il sistema può accettare una sovraelongazione percentuale al massimo del $11\%$:
+		$S\% \le 11\%$.
+		\\\\
+		4) Il tempo di assestamento alla $\varepsilon\% = 5\%$ deve essere inferiore al valore
+		fissato: $T_{a,\varepsilon} = 0.01\,\mathrm{s}$.
+		\\\\
+		5) Il disturbo sull’uscita $d(t)$, con una banda limitata nel range di pulsazioni
+		$[0,\,0.4]$, deve essere abbattuto di almeno $50\,\mathrm{dB}$.
+		\\\\
+		6) Il rumore di misura $n(t)$, con una banda limitata nel range di pulsazioni
+		$[8 \cdot 10^{4},\, 9 \cdot 10^{6}]$, deve essere abbattuto di almeno $60\,\mathrm{dB}$.
+		
+	\end{tcolorbox}
+	
+	\subsection{Architettura e funzioni di sensitività}
+	
+	Progettiamo un regolatore $R(s)$ per l'impianto $G(s)$ in modo che le specifiche vengano rispettate.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.6\textwidth]{figs/Schema-di-controllo.png}
+		\caption{Schema di controllo.}
+		\label{fig:schemaDiControllo}
+	\end{figure}
+	
+	Possiamo definire $L(s)=R(s)\cdot G(s)$, questa viene chiamata funzione d'anello.
+	
+	Inoltre, possiamo definire le funzioni di sensitività:
+	\begin{itemize}
+		\item $S(s)=\frac{1}{1+L(s)}$, ovvero la sensitività che controlla l'errore ed i disturbi all'ingresso ed all'uscita dell'impianto.
+		
+		\item $T(s)=\frac{L(s)}{1+L(s)}$, ovvero la sensitività che controlla il rumore di misure ed il riferimento ad alte frequenze.
+	\end{itemize}
+	
+	Nel seguente grafico possono essere analizzate le funzioni di sensitività del sistema a confronto con la $L(s)$:
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto3-Bode_L_S_T.pdf}
+	\end{figure}
+	
+	\subsection{Specifiche}
+	Le specifiche necessarie affinchè il regolatore progettato sia valido sono classificabili come:
+	\begin{itemize}
+		\item {Vincoli}
+		\begin{itemize}
+			\item Errore a regime $|e_{\infty}| \le e^{\star} = 0.002$.
+			\item Ampiezza gradino $W_{max}=4$.
+			\item Disturbo massimo $D_{max}=3,5$.
+			\item Margine di fase minimo $M_{f,min} = 50^\circ$.
+		\end{itemize}
+		\item{Dinamici}
+		\begin{itemize}
+			\item Tempo di assestamento (5\%)\  $T^\star = 0,01 s$.
+			\item Overshoot massimo $Sovr_{max}=0,11$
+		\end{itemize}
+		\item Disturbo (bassa frequenza)
+		\begin{itemize}
+			\item Attenuazione del disturbo $A_d = 50 \ dB$ in $[0 \ ,\ \omega_{d,max}]$, con $\omega_{d,max} = 0,4$.
+		\end{itemize}
+		\item Rumore (alta frequenza)
+		\begin{itemize}
+			\item Attenuazione del rumore $A_n = 60\ dB$ in $[\omega_{n,min}\ ,\ \omega_{n,max}]$, con $\omega_{n,min} = 8\cdot10^4$ e $\omega_{n,max} = 9\cdot10^6$
+		\end{itemize}
+		\item Specifiche Derivate:
+		\begin{itemize}
+			\item Smorzamento $\xi^\star$ calcolato dalla sovraelongazione massima facendo: $S\%=e^{-\frac{\pi\xi}{\sqrt{1-\xi^2}}}$, otterremo che $\xi^\star=\frac{|\ln(Sovr_{max})|}{\sqrt{\pi^2+\ln^2(Sovr_{max})}}$ così da avere $\xi^\star$ a margine di fase $M_f\approx100\xi^\star$.
+			\item Margine di fase desiderato$ M_f$, trovato con: $M_f=\max(100\xi^\star \ , \ M_{f,min})$, dove prendiamo il massimo per rispettare il vincolo sul margine di fase minimo.
+			\item Pulsazione crossover $\omega_{c,min}$ la otteniamo da margine di fase e tempo di assestamento: $\omega_{c,min}=\frac{300}{M_f\cdot T^\star}$.
+		\end{itemize}
+	\end{itemize}
+	
+	Per quanto riguarda le specifiche derivate, abbiamo come risultati:
+	\[
+	\xi^\star\approx0,575 \ , \qquad M_f\approx57,5^\circ \ , \qquad \omega_{c,min}=521,8\frac{rad}{s}.
+	\]
+	
+	\subsection*{Sintesi regolatore}
+	Il regolatore è realizzato come combinazione tra la sua parte statica e quella dinamica $R(s)=R_s(s)\cdot R_d(s)$.
+	
+	\subsection{Regolatore statico $R_s(s)$}
+	
+	Il regolatore statico si occupa delle specifiche riguardanti l’errore a regime.
+	Scegliamo un guadagno $R_s$ per soddisfare i vincoli a bassa frequenza:
+	
+	\subsubsection{Vincolo sull'errore a regime}
+	L'errore dovuto a un ingresso a gradino con retroazione unitaria dipende da $S(0)$.
+	Per avere errore $e^\star$ con $W \le 4$ e $D \le 3,5$. %AGGIUSTARE QUESTA FRASE
+	
+	Nel caso peggiore: 
+	\begin{equation}
+		|e_{\infty}| \le |S(0)|(W_{max}+D_{max})
+	\end{equation}
+	Imponendo:
+	\[
+	|e_{\infty}| \le e^{\star}
+	\]
+	E assumendo:
+	\[
+	L(0)>>1
+	\]
+	Notiamo che:
+	\[
+	|L(0)|\ge\frac{W_{max}+D_{max}}{e^\star}
+	\]
+	E definiamo:
+	\[
+	\mu_{s,err}=\frac{W_{max}+D_{max}}{e^\star}
+	\]
+	Siccome $L(0)=R_sG(0)$, otteniamo 
+	\[
+	R_{s,err}=\frac{\mu_{s,err}}{|G(0)|}
+	\]
+	
+	\subsubsection{Vincolo sul disturbo in bassa frequenza}
+	L'attenuazione richiesta $A_d = 50 \ dB$ si traduce in:
+	\[
+	\mu_{s,dist}=10^{\frac{A_d}{20}}
+	\]
+	Imponiamo un loop abbastanza grande a $\omega_{d,max}$:
+	\[
+	|L(J\omega_{d,max})|\ge10^{\frac{A_d}{20}}
+	\]
+	Quindi:
+	\[
+	R_{s,dist}=\frac{\mu_{s,dist}}{|G(j\omega_{d,max})|}
+	\]
+	Scegliamo il massimo trai due per soddisfare entrambi i vincoli: $R_s=\max(R_{s,err}\ ,\ R_{s,dist})$
+	
+	I risultati da noi ottenuti sono:
+	\[
+	R_{s,err}\approx1,46\cdot10^6 \ , \qquad R_{s,dist}\approx2,47\cdot10^7
+	\]
+	Quindi prendiamo: 
+	\[
+	R_s=2,47\cdot10^7
+	\]
+	
+	\subsection{Regolatore dinamico $R_d(s)$}
+	Il regolatore dinamico non ha come obiettivo principale quello di "modificare" il modulo, ma può:
+	\begin{itemize}
+		\item Modificare fase e pendenza (ci serve per garantire $M_f \ge 50^\circ$ e crossover  $> \omega_{c,min}$).
+		\item Ridurre il guadagno alle alte frequenze (ci serve per l'attenuazione del rumore $\ge 60\ dB$ in $[\omega_{n,min}\ ,\ \omega_{n,max}]$, con $\omega_{n,min} = 8\cdot10^4$ e $\omega_{n,max} = 9\cdot10^6$).
+		\item Aumentare il guadagno alle basse frequenze (ci serve per l'attenuazione dei disturbi fino a $\omega_{d,max} = 0,4$)
+	\end{itemize}
+	\subsubsection{Polo per attenuazione del rumore di misura}
+	Abbiamo introdotto un polo reale $R_{d,polo}(s)$ ad alta frequenza al fine di garantire l’attenuazione del rumore di misura.
+	\begin{equation}
+		R_{d,polo}(s)=\frac{1}{1+\frac{s}{\omega_{p,rumore}}}
+	\end{equation}
+	con:
+	\[
+	\omega_{p,rumore}=k_p\omega_{n,min} \ , \qquad k_p=0,3
+	\]
+	Prendiamo $k_p = 0,3$ per mettere il polo sotto la banda del rumore, in modo da attenuare il rumore senza tagliare la dinamica di controllo.
+	
+	\subsubsection{Rete anticipatrice $R_{lead} (s)$}
+	Il fulcro del regolatore dinamico, serve perchè altrimenti il loop sarebbe troppo in ritardo in fase.
+	Fissiamo $\omega_c^\star = 1,1 \omega_{c,min}$ (leggermente sopra il minimo per compensare approssimazioni).
+	
+	Ora, valutiamo modulo e fase dell'anello senza rete anticipatrice a $\omega_c^\star$, ovvero:
+	\[
+	L_0(j\omega_c^\star)\approx G_e(j\omega_c^\star)
+	\]
+	\[
+	G_e(s)=R_sG(s) \ , \qquad G_e(j\omega_c^\star)
+	\]
+	e ricaviamo modulo:
+	\[
+	|G_e(j\omega_c^\star)|
+	\]
+	e fase:
+	\[
+	\angle G_e(j\omega_c^\star)|
+	\]
+	da cui ricaviamo:
+	\begin{equation}
+		PM_0 = 180^\circ+\angle G_e(j\omega_c^\star)    
+	\end{equation}
+	
+	Nella figura sottostante si può analizzare $G_e(s)$ a confronto con $L(s)$:
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.8\textwidth]{figs/Punto3-Bode_L(s)_Ge(s).pdf}
+		\caption{Schema di controllo.}
+		\label{fig:schemaDiControllo}
+	\end{figure}
+	
+	I risultati da noi ottenuti sono:
+	\[
+	\angle G_e\approx-179,8^\circ \ , \qquad PM_0\approx0,2^\circ
+	\]
+	$PM_0$ è quasi nullo, pertanto imponiamo $PM_{des}$, ovvero un margine di fase desiderato, definito come: \\ $PM_{des}=M_f+8^\circ$, dove abbiamo aggiunto +8 per rendere il modello più robusto contro ad incertezze dovute ad approssimazioni.
+	
+	Pertanto, la fase che un lead deve aggiungere è: $\phi^\star=PM_{des}-PM_0$;
+	in parallelo, imponiamo che a $\omega_c^\star$ il modulo sia $0\ dB$:
+	\[|L(j\omega_c^\star)|=1\]
+	Dato che $L\approx R_dG_e$ a quella frequenza:
+	\[
+	|R_d(j\omega_c^\star)|=\frac{1}{|G_e(j\omega_c^\star)|}=M^\star
+	\]
+	
+	La rete lead scelta è:
+	\[
+	R_{d,antic}(s)=\frac{1+\tau s}{1+\alpha\tau s}, \qquad \text{con} \ 0<\alpha<1
+	\]
+	Abbiamo trovato un polo a $\alpha\tau$ ed uno zero a $\tau$.
+	
+	A partire dalle formule standard dello scenario B, arriviamo ad avere le seguenti espressioni:
+	\begin{equation}
+		\tau=\frac{M^\star-\cos\phi^\star}{\omega_c^\star\sin\phi^\star}\ , \qquad
+		\alpha\tau=\frac{\cos\phi^\star-\frac{1}{M^\star}}{\omega_c^\star\sin\phi^\star}
+	\end{equation}
+	
+	I risultati da noi ottenuti sono:
+	\[
+	PM_0\approx0,2^\circ\ , \qquad PM_{des}\approx65,5^\circ\ , \qquad \phi^\star\approx65,3^\circ\]\[
+	M^\star \approx 1305,7\ , \qquad \tau\approx2,503 s\ , \qquad \alpha\tau\approx8\cdot10^{-4}s
+	\]
+	
+	\subsubsection{Regolatore dinamico complessivo}
+	Il regolatore dinamico complessivo risulta quindi:
+	\[
+	R_d(s) = R_{d,antic}(s)\,R_{d,polo}(s)
+	\]
+	
+	Il regolatore dinamico risulta quindi composto da una rete anticipatrice,
+	responsabile dell’incremento del margine di fase e della modellazione della
+	dinamica del sistema, e da un polo ad alta frequenza, introdotto per garantire
+	l’attenuazione del rumore di misura. L’aumento del guadagno alle basse frequenze,
+	necessario per il rigetto dei disturbi, è invece demandato al regolatore statico.
+	\subsection{Margini di L(s) e attenuazione S, T}
+	
+	\begin{itemize}
+		\item Margine di guadagno $G_M = 32,05dB$.
+		\item Margine di fase $P_M = 64,12^\circ$ a $\omega=573,87\frac{rad}{s}$.
+		\item Disturbo (bassa frequenza) $s_{max}=\max|s(j\omega)| \le 10^{-\frac{Ad}{20}} = -53,08\ dB$.
+		\item Rumore (alta frequenza) $T_{max}=\max|T(j\omega)| \le 10^{-\frac{An}{20}} = -89,3\ dB$.
+	\end{itemize}
+	
+	\subsection{Prestazioni nel tempo (gradino) }
+	
+	
+	Al fine di verificare il rispetto delle specifiche temporali, è stata analizzata la risposta al gradino del sistema in anello chiuso.  
+	La funzione di trasferimento dal riferimento all’uscita è data da:
+	\[
+	F(s) = \frac{L(s)}{1 + L(s)},
+	\]
+	dove \( L(s) = R(s)G(s) \) rappresenta la funzione d’anello aperto.
+	
+	È stato applicato un gradino di riferimento di ampiezza \( W_{\max} \) e la risposta del sistema è stata ottenuta mediante simulazione temporale.
+	
+	\subsubsection{Tempo di assestamento}
+	
+	Il tempo di assestamento al 5\% è definito come l’istante oltre il quale l’uscita del sistema rimane permanentemente all’interno di una banda pari al \(\pm 5\%\) del valore di regime:
+	\[
+	0.95\,y_{\infty} \le y(t) \le 1.05\,y_{\infty}.
+	\]
+	
+	Attraverso la funzione \texttt{stepinfo} di MATLAB, impostando una soglia di assestamento pari al 5\%, è stato calcolato il tempo di assestamento:
+	\[
+	T_s = 3.25 \cdot 10^{-3} \, \text{s}.
+	\]
+	
+	Il valore ottenuto risulta inferiore al limite imposto dalla specifica:
+	\[
+	T_s \le 1.0 \cdot 10^{-2} \, \text{s},
+	\]
+	pertanto la specifica sulla rapidità del sistema risulta soddisfatta.
+	
+	\subsubsection{Sovraelongazione massima}
+	
+	La sovraelongazione percentuale è definita come:
+	\[
+	S = \frac{y_{\max} - y_{\infty}}{y_{\infty}} \cdot 100,
+	\]
+	dove \( y_{\max} \) rappresenta il valore massimo raggiunto dall’uscita durante il transitorio e \( y_{\infty} \) il valore di regime.
+	
+	Dall’analisi della risposta al gradino si ottiene:
+	\[
+	S = 4.98\%.
+	\]
+	
+	Tale valore risulta ampiamente inferiore al limite massimo consentito dalla specifica:
+	\[
+	S \le 11\%,
+	\]
+	confermando un comportamento ben smorzato del sistema.
+	
+	
+	\subsection{Regolatore finale}
+	
+	Il regolatore finale risulta essere:
+	\begin{equation}
+		R(s)=R_d(s)\cdot R_s
+	\end{equation}
+	Dopo aver fatto i calcoli risulterà essere:
+	\begin{equation}
+		R(s) =
+		2.47\cdot10^{7}\;
+		\frac{1 + 2.503\,s}
+		{\left(1 + 8\cdot10^{-4}\,s\right)\left(1 + \dfrac{s}{2.4\cdot10^4}\right)}.
+	\end{equation}
+	Quindi la nostra $L(s) $sarà:
+	\begin{equation}
+		L(s)=R(s)G_e(s)=
+		2.47\cdot10^{7}\;
+		\frac{1 + 2.503\,s}
+		{\left(1 + 8\cdot10^{-4}\,s\right)\left(1 + \dfrac{s}{2.4\cdot10^4}\right)}
+		\cdot\frac{2{,}54 \cdot 10^{2}}
+		{(s + 1{,}9545)(s + 0{,}0021)}.
+	\end{equation}
+	\clearpage
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto3-Bode_di_L(s).pdf}
+	\end{figure}
+	
+	\section{Test sul sistema linearizzato}
+	
+	\subsection{Richieste}
+	
+	\begin{tcolorbox}[
+		colback=gray!10,
+		colframe=black,
+		left=8pt,
+		right=8pt,
+		top=8pt,
+		bottom=8pt
+		]
+		
+		Testare il sistema di controllo sul sistema linearizzato con $w(t) = 4 · 1(t)$, d(t) = $1.5 \sum^{4}_{k=1} sin(0.08kt)$ e
+		$n(t) = 3 \sum_{k=1}^4 sin(5\cdot10^4kt)$.
+		
+	\end{tcolorbox}
+	
+	\subsection{Obiettivi}
+	Andremo a verificare tramite simulazione nel tempo di un sistema lineare ad anello chiuso che il nostro regolatore soddisfi effettivamente le specifiche su:
+	\begin{itemize}
+		\item Riferimenti
+		\item Disturbo
+		\item Rumore
+	\end{itemize}
+	
+	\subsection{Ingressi}
+	Rappresentazioni grafiche degli ingressi forniti dalla richiesta, prima sullo scenario breve, poi su quello lungo.
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto4-Scenario_breve_(Ingressi).pdf}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto4-Scenario_lungo_(Ingressi).pdf}
+	\end{figure}
+	
+	\subsection{Modello ad anello chiuso e funzioni di trasferimento}
+	
+	Il test è stato condotto sul modello linearizzato del sistema, considerando il comportamento in anello chiuso rispetto ai tre ingressi previsti: riferimento $w(t)$, disturbo $d(t)$ e rumore di misura $n(t)$.
+	
+	In particolare, definite $L(s)$ come funzione di trasferimento in anello aperto, $T(s)$ come funzione di sensibilità complementare e $S(s)$ come funzione di sensibilità, valgono le seguenti relazioni:
+	\[
+	\begin{aligned}
+		T_{wy}(s) &= T(s) \\
+		T_{dy}(s) &= S(s) \\
+		T_{ny}(s) &= -T(s)
+	\end{aligned}
+	\]
+	
+	dove il segno negativo nel trasferimento dal rumore all’uscita è dovuto al fatto che il rumore agisce sul ramo di retroazione.
+	
+	Queste funzioni di trasferimento vengono utilizzate per valutare separatamente l’effetto dei tre ingressi sull’uscita del sistema.
+	
+	\subsection{Margini di stabilità}
+	
+	I margini di stabilità sono stati calcolati sulla funzione di trasferimento in anello aperto $L(s)$ mediante il comando \texttt{margin}.  
+	I risultati ottenuti sono:
+	
+	\begin{itemize}
+		\item Margine di guadagno: $GM = 32.05$ dB
+		\item Margine di fase: $PM = 64.12^\circ$
+		\item Frequenza di attraversamento: $\omega_c = 573.87$ rad/s
+	\end{itemize}
+	
+	Da tali valori capiamo che:
+	\begin{itemize}
+		\item Il margine di fase è maggiore del valore richiesto, specifica soddisfatta.
+		\item Il margine di guadagno elevato indica una buona tolleranza a variazioni parametriche.
+		\item La frequenza di crossover è coerente con la specifica $\omega_c^\star = 1,1\omega_{c,min}$
+	\end{itemize}
+	
+	\subsection{Prestazioni sul gradino di riferimento}
+	
+	Le prestazioni dinamiche del sistema sono state valutate applicando un gradino di riferimento $\omega(t) = 4 \cdot 1(t)$ in assenza di disturbi e rumore ($d(t)=0$, $n(t)=0$).
+	
+	Otteniamo:
+	
+	\begin{itemize}
+		\item Tempo di assestamento al 5\%: $T_s = 3.25 \cdot 10^{-3}$ s
+		\item Overshoot: $4.98\%$
+		\item Errore a regime: $6.43 \cdot 10^{-5}$ °C
+	\end{itemize}
+	
+	Da questi dati evinciamo che:
+	\begin{itemize}
+		\item Il tempo di assestamento è molto inferiore al limite.
+		\item L'overshoot è al di sotto del valore (11\%) richiesto.
+		\item L'errore a regime è due ordini più piccolo del minimo richiesto.
+	\end{itemize}
+	
+	Avremo che:
+	\begin{equation}
+		e_\infty=\omega_{max}|1-T(0)|=\omega_{max}|S(0)|
+	\end{equation}
+	Ciò conferma che $L(0)$ è grande come, imposto nel progetto del guadagno statico di $R_s$.
+	
+	\subsection{Scenario lungo: reiezione del disturbo a bassa frequenza}
+	
+	Per valutare la capacità del sistema di rigettare disturbi a bassa frequenza, è stata eseguita una simulazione su un orizzonte temporale lungo ($60$ s), applicando:
+	
+	\[
+	d(t) = 1.5 \sum_{k=1}^{4} \sin(0.08 k t)
+	\]
+	
+	Il rumore di misura è stato posto nullo.
+	
+	L’uscita dovuta al solo disturbo è stata calcolata facendo:
+	\[
+	y_{d1}(t) = T_{dy}(s)\, d(t)
+	\]
+	
+	Il valore massimo assoluto osservato è:
+	\[
+	\max |y_{d1}(t)| = 0.006 \text{ °C}
+	\]
+	
+	Il disturbo applicato ha ampiezza $1,5$ ed è composto da più sinusoidi lente, l'uscita presenta un'oscillazione molto ridotta rispetto all'ampiezza del disturbo ed è coerente con quanto progettato, confermando l’efficacia della funzione di sensibilità $S(s)$ nel rigettare disturbi a bassa frequenza, infatti:
+	\begin{equation}
+		S(s)=\frac{1}{1+L(s)}
+	\end{equation}
+	Che in bassa frequenza ha modulo inferiore a $-50 \ dB$.
+	
+	\subsection{Scenario breve: attenuazione del rumore di misura ad alta frequenza}
+	
+	Per analizzare l’effetto del rumore di misura, è stata effettuata una simulazione su un intervallo temporale breve ($0.05$ s) con passo molto ridotto, al fine di catturare le componenti ad alta frequenza.
+	
+	Ricordiamo che il rumore è definito come:
+	\[
+	n(t) = 3 \sum_{k=1}^{4} \sin(5 \cdot 10^4 k t)
+	\]
+	
+	L’uscita dovuta al rumore è:
+	\[
+	y_{n2}(t) = T_{ny}(s)\, n(t)
+	\]
+	
+	Il massimo valore assoluto osservato è:
+	\[
+	\max |y_{n2}(t)| = 5.18 \cdot 10^{-2} \text{ °C}
+	\]
+	
+	Da questo possiamo evincere che:
+	\begin{itemize}
+		\item Il rumore ha ampiezza elevata ed è concentrato in alta frequenza.
+		\item L'uscita mostra un'ampiezza molto più piccola confermando una forte attebuazione.
+	\end{itemize}
+	
+	\subsection{Uscita totale del sistema}
+	
+	Avendo a disposizione i contributi all'uscita dati da riferimento, disturbi e rumore, possiamo ottenere l'uscita totale con:
+	\begin{equation}
+		y(t) = y_w(t) + y_d(t) + y_n(t)    
+	\end{equation}
+	
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto4-Uscite_totali.pdf}
+	\end{figure}
+	
+	Nel complesso, i risultati ottenuti confermano che il regolatore progettato soddisfa tutte le specifiche richieste.
+	
+	\section{Test sul sistema non lineare}
+	\subsection{Richieste}
+	
+	\begin{tcolorbox}[
+		colback=gray!10,
+		colframe=black,
+		left=8pt,
+		right=8pt,
+		top=8pt,
+		bottom=8pt
+		]
+		
+		\begin{itemize}
+			\item Testare il sistema di controllo sul modello non lineare (ed in presenza di $d(t) \text{\ ed\ } n(t)$).
+			\item Supponendo un riferimento $\omega(t)=2\cdot1(t)$, esplorare il range di condizioni iniziali dello stato del sistema non lineare (nell'intorno del punto di equilibrio) tali per cui l'uscita del sistema in anello chiuso converga a $h(x_e,u_e)$.
+			\item Esplorare il range di ampiezza di riferimenti a gradino tali per cui il controllore rimane efficace sul sistema non lineare.
+		\end{itemize}
+	\end{tcolorbox}
+	\subsection{Simulazione}
+	Per lo svolgimento di questo punto abbiamo utilizzato Simulink.
+	\subsubsection{Sistema ad anello chiuso non lineare}
+	Quella che segue è la rappresentazione del sistema modellata utilizzando Simulink.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.95\textwidth]{figs/Punto5-Modello_Simulink.pdf}
+	\end{figure}
+	
+	\subsubsection{Descrizione dei blocchi}
+	
+	\begin{itemize}
+		\item $\omega(t)$: rappresenta il gradino d'ingresso.
+		\item $n(t)$: rappresenta il rumore di misura.
+		\item $R$: rappresenta il regolatore.
+		\item $dx$: blocco MatLab che contiene l'equazione di stato.
+		\item $u\_e$: rappresenta l'ingresso all'equilibrio.
+		\item $\frac{1}{s}$: blocco Integrator che permette di integrare l'equazione differenziale.
+		\item $C*u$: un gain che moltiplica l'uscita del blocco Integrator per la matrice $C$.
+		\item $d(t)$: rappresenta il disturbo d'uscita.
+		\item $-C-$: sottrazione da applicare per ottenere la non lineare.
+		\item $y(t)$ (ultimo blocco a destra): Blocco scope che mostra l'uscita non lineare.
+	\end{itemize}
+	
+	\subsubsection{Simulzaione con disturbi applicati}
+	
+	\clearpage
+	\section{Punti opzionali}
+	
+	
+	
+\end{document}
