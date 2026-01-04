@@ -355,7 +355,7 @@ u_e = 771{,}250 \,\mathrm{W}
 	\[
 	f_1(T_{R,e}, T_{\text{out},e}, u_e) = 0 \; \text{[°C/s]},
 	\qquad
-	f_2(T_{R,e}, T_{\text{out},e}, u_e) \approx 9,7 \cdot 10^{-5}\ \; \text{[°C/s]}.
+	f_2(T_{R,e}, T_{\text{out},e}, u_e) = 9,7 \cdot 10^{-5}\ \; \text{[°C/s]}.
 	\]
 	Benchè il primo valore sia nullo, il secondo non è esattamente uguale a 0, ma, essendo un valore molto vicino allo 0 possiamo considerare soddisfatta la condizione e supporre \((x_e, u_e)\) coppia di equilibrio.
 	Per procedere in maniera corretta senza supposizioni, possiamo prendere una tolleranza di $10^{-4}$.
@@ -404,6 +404,7 @@ D = \left.\frac{\partial h(x,u)}{\partial u}\right|_{(x_e,u_e)}.
 
     \subsubsection{Calcolo delle jacobiane}
 	Per effettuare la linearizzazione è necessario ricavare le jacobiane delle funzioni di stato \( f(x,u) \) rispetto alle variabili di stato e all’ingresso, valutandole nel punto di equilibrio \((x_e, u_e)\).
+    Il calcolo numerico delle Jacobiane tramite differenze finite è giustificato dalla regolarità delle funzioni di stato. Il passo Δ è scelto sufficientemente piccolo in modo da garantire una buona approssimazione delle derivate parziali. 
     Nel presente elaborato il calcolo delle Jacobiane non è stato effettuato in forma analitica,
 bensì tramite un’approssimazione numerica delle derivate parziali mediante il metodo delle
 differenze finite centrate. In particolare, fissato un passo \(\Delta > 0\) sufficientemente
@@ -452,7 +453,7 @@ piccolo, le derivate sono state approssimate come:
 		\end{bmatrix}.
 	\end{equation}
 	
-	Da $B_{2}$ capiamo che l'ingresso non entra direttamente nell'equazione; da $B_{1}$ capiamo che \dots.
+	Da $B_{2}$ capiamo che l'ingresso non entra direttamente nell'equazione; da $B_{1}$ capiamo che in particolare, la potenza elettrica influisce direttamente solo sulla dinamica della temperatura del riscaldatore, mentre la temperatura dell’aria è influenzata indirettamente tramite lo scambio termico con il riscaldatore 
 	
 	Poiché la sola uscita del sistema è la temperatura \( T_{\text{out}} \), (sistema SISO) si ottiene:
 	\begin{equation}
@@ -472,7 +473,7 @@ piccolo, le derivate sono state approssimate come:
 	
 	\subsubsection{Autovalori e stabilità}
 
-La stabilità locale del sistema linearizzato può essere analizzata studiando gli autovalori della matrice A. In particolare, il sistema linearizzato è asintoticamente stabile se e solo se tutti gli autovalori di A hanno parte reale negativa. Nel caso in esame, gli autovalori della matrice \( A_e \)  si trovano risolvendo il polinomio caratteristico :
+La stabilità locale del sistema linearizzato può essere analizzata studiando gli autovalori della matrice A. In particolare, il sistema linearizzato è asintoticamente stabile se e solo se tutti gli autovalori di A hanno parte reale negativa. La linearizzazione è valida localmente attorno al punto di equilibrio, che rappresenta una condizione di bilancio termico. Nel caso in esame, gli autovalori della matrice \( A_e \)  si trovano risolvendo il polinomio caratteristico :
 	\[
 	\det(A_e - \lambda I) = 0.
 	\]
@@ -488,7 +489,7 @@ La stabilità locale del sistema linearizzato può essere analizzata studiando g
 	\Re(\lambda_1) < 0, \qquad \Re(\lambda_2) < 0.
 	\]
 	
-	Di conseguenza, anche il sistema non lineare risulta localmente stabile
+	Di conseguenza,La stabilità del sistema linearizzato garantisce la stabilità locale del modello non lineare
 	attorno al punto di equilibrio.
 	
 	\section{Funzione di trasferimento}
@@ -526,8 +527,7 @@ Y(s) &= C(sI - A)^{-1} x(0) +
 \left[ C(sI - A)^{-1} B + D \right] U(s). \label{eq:laplace_output}
 \end{align}
 
-La funzione di trasferimento \(G(s)\) è definita come la trasformata di Laplace della
-risposta impulsiva del sistema, ovvero l’uscita generata in risposta a un ingresso impulsivo.
+La funzione di trasferimento G(s) rappresenta la relazione ingresso–uscita nel dominio di Laplace, assumendo condizioni iniziali nulle. 
 Poiché l’uscita può essere espressa come il prodotto di convoluzione tra l’ingresso \(u(t)\)
 e la risposta impulsiva \(g(t)\),
 \[
@@ -575,17 +575,19 @@ dove \(A_e\), \(B_e\), \(C_e\) e \(D_e\) sono le matrici del modello linearizzat
 nel punto di equilibrio. Nel caso in esame, l’inverso della matrice \((sI - A_e)\) risulta:
 \begin{equation}
 (sI - A_e)^{-1} =
+\frac{1}{s^2 + 1.9566\,s + 0.004051}
 \begin{bmatrix}
-\dfrac{s + 0.95}{s^2 + 2.00s + 0.84} &
-\dfrac{-0.45}{s^2 + 2.00s + 0.84} \\[0.3cm]
-\dfrac{-0.35}{s^2 + 2.00s + 0.84} &
-\dfrac{s + 1.05}{s^2 + 2.00s + 0.84}
+s+1.9545 & 1.6\cdot 10^{-3}\\[0.2cm]
+0.0333 & s+2.1\cdot 10^{-3}
 \end{bmatrix}.
 \label{eq:inv_matrix}
 \end{equation}
 
+
+
 Sostituendo le matrici
 \[
+
 C_e =
 \begin{bmatrix}
 0 & 1
@@ -593,13 +595,16 @@ C_e =
 \qquad
 B_e =
 \begin{bmatrix}
--90 \\
-5
+3.068\cdot 10^{-4} \\
+0
 \end{bmatrix},
 \qquad
-D_e = 0,
+D_e = 0.
 \]
-si ottiene la funzione di trasferimento della pianta:
+
+Si osserva che l’ingresso agisce direttamente solo sulla dinamica di $T_R$ (seconda componente nulla in $B_e$),
+mentre $T_{out}$ è influenzata indirettamente tramite lo scambio termico.
+asferimento della pianta:
 \begin{equation}
 G(s) = \frac{0.0103}{s^2 + 1.9566s + 0.0041}.
 \label{eq:tf_pianta}
@@ -621,7 +626,8 @@ G(j\omega) = \left. \frac{0.0103}{s^2 + 1.9566s + 0.0041} \right|_{s = j\omega}.
 		= -\,C A^{-1} B + D
 		= 2,518\cdot10^{-3} \quad\frac{^\circ\mathrm{C}}{W}
 	\end{equation}
-    e rappresenta la variazione a regime della temperatura dell’aria in uscita in risposta a una variazione unitaria della potenza elettrica fornita al riscaldatore. 
+    Rappresenta la variazione a regime della temperatura dell’aria in uscita in risposta a una variazione unitaria della potenza elettrica fornita al riscaldatore. 
+    Il valore positivo del guadagno statico indica che un aumento della potenza elettrica fornita comporta un aumento della temperatura dell’aria in uscita, come atteso dal punto di vista fisico. 
 	
 	\subsubsection{Poli e zeri}
 	Data la funzione di trasferimento %mettere poi label all'equation
@@ -636,10 +642,11 @@ G(j\omega) = \left. \frac{0.0103}{s^2 + 1.9566s + 0.0041} \right|_{s = j\omega}.
 		p_2 = -0,0021 \ \frac{1}{s}.
 	\end{equation}
 	
-	Si osserva che i poli di G(s) coincidono con gli autovalori della matrice A.
+Nel caso in esame, non essendo presenti cancellazioni polo–zero, il denominatore della funzione di trasferimento coincide con il polinomio caratteristico della matrice A .
 	Tutti i poli presentano parte reale negativa; il sistema è quindi BIBO stabile.
-	
 	Per quanto riguarda gli zeri di $G(s)$, si può notare che $G(s)$ non ha nessuno zero finito.
+
+    Le caratteristiche dinamiche della funzione di trasferimento, in particolare la presenza di una dinamica lenta e di una rapida, saranno utilizzate nel seguito per il progetto del regolatore 
 	
 	\begin{figure}[H]
 		\centering
@@ -659,6 +666,7 @@ G(j\omega) = \left. \frac{0.0103}{s^2 + 1.9566s + 0.0041} \right|_{s = j\omega}.
 		\centering
 		\includegraphics[width=0.95\textwidth]{figs/Punto2-Bode_di_G(s).pdf}
 	\end{figure}
+	
 	
 	\section{Progettazione del regolatore}
 	
