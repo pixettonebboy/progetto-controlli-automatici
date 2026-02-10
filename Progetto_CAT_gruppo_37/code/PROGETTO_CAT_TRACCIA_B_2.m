@@ -1,4 +1,4 @@
-%% ------------------------------------------------------------------------
+                                                            %% ------------------------------------------------------------------------
 %          ----PROGETTO CAT 2025/2026 ----- Tipologia B traccia 2
 %          DI :
 %               Achille Pisani
@@ -162,9 +162,9 @@ end
 % ========================================================================
 
 % Dal modello di stato (A,B,C,D) si ricava G(s) = ΔT_out(s) / ΔPE(s)
-sys = ss(A,B,C,D);
-G   = tf(sys);
-G   = minreal(G);
+sys = ss(A,B,C,D);  % spazio dei sistemi
+G   = tf(sys);      % da ss->F.d.T.
+G   = minreal(G);   % cancella poli e zeri identici
 zpk(G)
 
 
