@@ -3,7 +3,7 @@
 Progetto svolto per il corso di **Controlli Automatici T**  
 Università di Bologna – A.A. **2025/2026**  
 Docente: **Prof. Giuseppe Notarstefano**  
-Traccia di progetto: **B2 – Sistema di riscaldamento**
+Traccia di progetto: **B2 – Controllo di un riscaldatore**
 
 ## 📌 Descrizione
 Questo repository contiene il progetto realizzato per l’esame di Controlli Automatici.  
